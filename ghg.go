@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"path/filepath"
 	"runtime"
 	"strings"
 
@@ -53,33 +54,45 @@ func (gh *ghg) install() error {
 	}
 
 	for _, url := range urls {
-		req, err := http.NewRequest(http.MethodGet, url, nil)
+		archivePath, err := download(url)
 		if err != nil {
-			return errors.Wrap(err, "failed to create request")
+			return errors.Wrap(err, "failed to download")
 		}
-		req.Header.Set("User-Agent", fmt.Sprintf("ghg/%s", version))
-		resp, err := http.DefaultClient.Do(req)
-		if err != nil {
-			return errors.Wrap(err, "failed to create request")
-		}
-		body, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			return errors.Wrap(err, "failed to read response")
-		}
-		err = func(filename string, body []byte) error {
-			file, err := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY, 0666)
-			if err != nil {
-				return err
-			}
-			defer file.Close()
-			_, err = file.Write(body)
-			return err
-		}(path.Base(url), body)
-		if err != nil {
-			return errors.Wrap(err, "failed to read response")
-		}
+		fmt.Println(archivePath)
 	}
 	return nil
+}
+
+func download(url string) (string, error) {
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return "", errors.Wrap(err, "failed to create request")
+	}
+	req.Header.Set("User-Agent", fmt.Sprintf("ghg/%s", version))
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return "", errors.Wrap(err, "failed to create request")
+	}
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", errors.Wrap(err, "failed to read response")
+	}
+	archiveBase := path.Base(url)
+	tempdir, err := ioutil.TempDir("", "ghg-")
+	if err != nil {
+		return "", errors.Wrap(err, "failed to create tempdir")
+	}
+	fpath := filepath.Join(tempdir, archiveBase)
+	f, err := os.OpenFile(filepath.Join(tempdir, archiveBase), os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return "", errors.Wrap(err, "failed to open file")
+	}
+	defer f.Close()
+	_, err = f.Write(body)
+	if err != nil {
+		return "", errors.Wrap(err, "failed to read response")
+	}
+	return fpath, nil
 }
 
 func (gh *ghg) getRepoAndOwner() (owner, repo string, err error) {
