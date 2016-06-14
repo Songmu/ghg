@@ -45,7 +45,10 @@ func (cli *CLI) Run(argv []string) int {
 			target: target,
 			client: ghcli,
 		}
-		gh.install()
+		err := gh.install()
+		if err != nil {
+			log.Println(err.Error())
+		}
 	}
 	return exitCodeOK
 }
