@@ -63,34 +63,45 @@ func (gh *ghg) install() error {
 	return nil
 }
 
-func download(url string) (string, error) {
+func download(url string) (fpath string, err error) {
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
-		return "", errors.Wrap(err, "failed to create request")
+		err = errors.Wrap(err, "failed to create request")
+		return
 	}
 	req.Header.Set("User-Agent", fmt.Sprintf("ghg/%s", version))
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return "", errors.Wrap(err, "failed to create request")
+		err = errors.Wrap(err, "failed to create request")
+		return
 	}
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return "", errors.Wrap(err, "failed to read response")
+		err = errors.Wrap(err, "failed to read response")
+		return
 	}
 	archiveBase := path.Base(url)
 	tempdir, err := ioutil.TempDir("", "ghg-")
 	if err != nil {
-		return "", errors.Wrap(err, "failed to create tempdir")
+		err = errors.Wrap(err, "failed to create tempdir")
+		return
 	}
-	fpath := filepath.Join(tempdir, archiveBase)
+	defer func() {
+		if err != nil {
+			os.RemoveAll(tempdir)
+		}
+	}()
+	fpath = filepath.Join(tempdir, archiveBase)
 	f, err := os.OpenFile(filepath.Join(tempdir, archiveBase), os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
-		return "", errors.Wrap(err, "failed to open file")
+		err = errors.Wrap(err, "failed to open file")
+		return
 	}
 	defer f.Close()
 	_, err = f.Write(body)
 	if err != nil {
-		return "", errors.Wrap(err, "failed to read response")
+		err = errors.Wrap(err, "failed to read response")
+		return
 	}
 	return fpath, nil
 }
