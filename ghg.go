@@ -7,6 +7,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"strings"
 
@@ -66,6 +67,10 @@ func (gh *ghg) install() error {
 		err = extract(archivePath, workDir)
 		if err != nil {
 			return errors.Wrap(err, "failed to extract")
+		}
+		err = pickupExecutable(workDir, ".")
+		if err != nil {
+			return errors.Wrap(err, "failed to pickup")
 		}
 	}
 	return nil
@@ -136,4 +141,19 @@ func (gh *ghg) getRepoAndOwner() (owner, repo string, err error) {
 		repo = arr[1]
 	}
 	return
+}
+
+var executableReg = regexp.MustCompile(`^[a-z][-_a-zA-Z0-9]+(?:\.exe)?$`)
+
+func pickupExecutable(src, dest string) error {
+	defer os.RemoveAll(src)
+	return filepath.Walk(src, func(path string, info os.FileInfo, err error) error {
+		if err != nil || info.IsDir() {
+			return err
+		}
+		if name := info.Name(); (info.Mode()&0111) != 0 && executableReg.MatchString(name) {
+			return os.Rename(path, filepath.Join(dest, name))
+		}
+		return nil
+	})
 }
