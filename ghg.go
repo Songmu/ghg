@@ -17,19 +17,25 @@ import (
 	"github.com/pkg/errors"
 )
 
-type ghg struct {
-	binDir  string
-	target  string
-	version string
-	client  *octokit.Client
-}
-
 func getOctCli(token string) *octokit.Client {
 	var auth octokit.AuthMethod
 	if token != "" {
 		auth = octokit.TokenAuth{AccessToken: token}
 	}
 	return octokit.NewClient(auth)
+}
+
+type ghg struct {
+	binDir  string
+	target  string
+	client  *octokit.Client
+}
+
+func (gh *ghg) getBinDir() string {
+	if gh.binDir != "" {
+		return gh.binDir
+	}
+	return "."
 }
 
 var releaseByTagURL = octokit.Hyperlink("repos/{owner}/{repo}/releases/tags/{tag}")
@@ -75,7 +81,7 @@ func (gh *ghg) install() error {
 		if err != nil {
 			return errors.Wrap(err, "failed to extract")
 		}
-		err = pickupExecutable(workDir, ".")
+		err = pickupExecutable(workDir, gh.getBinDir())
 		if err != nil {
 			return errors.Wrap(err, "failed to pickup")
 		}
