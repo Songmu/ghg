@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"os"
 	"path"
 	"path/filepath"
@@ -31,14 +32,20 @@ func getOctCli(token string) *octokit.Client {
 	return octokit.NewClient(auth)
 }
 
+var releaseByTagURL = octokit.Hyperlink("repos/{owner}/{repo}/releases/tags/{tag}")
 var archiveReg = regexp.MustCompile(`\.(?:zip|tgz|tar\.gz)$`)
 
 func (gh *ghg) install() error {
-	owner, repo, err := gh.getRepoAndOwner()
+	owner, repo, tag, err := gh.getOwnerRepoAndTag()
 	if err != nil {
 		return errors.Wrap(err, "failed to resolve target")
 	}
-	url, err := octokit.ReleasesLatestURL.Expand(octokit.M{"owner": owner, "repo": repo})
+	var url *url.URL
+	if tag == "" {
+		url, err = octokit.ReleasesLatestURL.Expand(octokit.M{"owner": owner, "repo": repo})
+	} else {
+		url, err = releaseByTagURL.Expand(octokit.M{"owner": owner, "repo": repo, "tag": tag})
+	}
 	if err != nil {
 		return errors.Wrap(err, "failed to build GitHub URL")
 	}
@@ -46,7 +53,7 @@ func (gh *ghg) install() error {
 	if r.HasError() {
 		return errors.Wrap(r.Err, "failed to fetch latest release")
 	}
-	tag := release.TagName
+	tag = release.TagName
 	goarch := runtime.GOARCH
 	goos := runtime.GOOS
 	var urls []string
@@ -130,15 +137,16 @@ func extract(src, dest string) error {
 	return fmt.Errorf("failed to extract file: %s", src)
 }
 
-func (gh *ghg) getRepoAndOwner() (owner, repo string, err error) {
-	arr := strings.SplitN(gh.target, "/", 2)
-	if len(arr) < 1 {
-		return "", "", fmt.Errorf("target invalid")
-	}
-	owner = arr[0]
-	repo = arr[0]
-	if len(arr) > 1 {
-		repo = arr[1]
+var targetReg = regexp.MustCompile(`^(?:([^/]+)/)?([^@]+)(?:@(.+))?$`)
+
+func (gh *ghg) getOwnerRepoAndTag() (owner, repo, tag string, err error) {
+	if matches := targetReg.FindStringSubmatch(gh.target); len(matches) == 4 {
+		owner = matches[1]
+		repo = matches[2]
+		tag = matches[3]
+		if owner == "" {
+			owner = repo
+		}
 	}
 	return
 }
