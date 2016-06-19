@@ -30,6 +30,8 @@ func getOctCli(token string) *octokit.Client {
 	return octokit.NewClient(auth)
 }
 
+var archiveReg = regexp.MustCompile(`\.(?:zip|tgz|tar\.gz)$`)
+
 func (gh *ghg) install() error {
 	owner, repo, err := gh.getRepoAndOwner()
 	if err != nil {
@@ -49,7 +51,7 @@ func (gh *ghg) install() error {
 	var urls []string
 	for _, asset := range release.Assets {
 		name := asset.Name
-		if strings.Contains(name, goarch) && strings.Contains(name, goos) {
+		if strings.Contains(name, goarch) && strings.Contains(name, goos) && archiveReg.MatchString(name) {
 			urls = append(urls, fmt.Sprintf("https://github.com/%s/%s/releases/download/%s/%s", owner, repo, tag, name))
 		}
 	}
