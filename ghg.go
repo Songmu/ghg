@@ -1,12 +1,7 @@
 package ghg
 
 import (
-	"archive/tar"
-	"archive/zip"
-	"bytes"
-	"compress/gzip"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -15,6 +10,7 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/mholt/archiver"
 	"github.com/octokit/go-octokit/octokit"
 	"github.com/pkg/errors"
 )
@@ -64,6 +60,7 @@ func (gh *ghg) install() error {
 			return errors.Wrap(err, "failed to download")
 		}
 		workDir := filepath.Join(filepath.Dir(archivePath), "work")
+		os.MkdirAll(workDir, 0755)
 		err = extract(archivePath, workDir)
 		if err != nil {
 			return errors.Wrap(err, "failed to extract")
@@ -118,92 +115,12 @@ func download(url string) (fpath string, err error) {
 func extract(src, dest string) error {
 	base := filepath.Base(src)
 	if strings.HasSuffix(base, ".zip") {
-		return unzip(src, dest)
+		return archiver.Unzip(src, dest)
 	}
 	if strings.HasSuffix(base, ".tar.gz") || strings.HasSuffix(base, ".tgz") {
-		return extractTar(src, dest)
+		return archiver.UntarGz(src, dest)
 	}
-	return nil
-}
-
-func unzip(src, dest string) error {
-	r, err := zip.OpenReader(src)
-	if err != nil {
-		return err
-	}
-	defer r.Close()
-
-	var move = func(f *zip.File) error {
-		rc, err := f.Open()
-		if err != nil {
-			return err
-		}
-		defer rc.Close()
-
-		path := filepath.Join(dest, f.Name)
-		if f.FileInfo().IsDir() {
-			os.MkdirAll(path, f.Mode())
-		} else {
-			os.MkdirAll(filepath.Dir(path), 0755)
-			f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
-			if err != nil {
-				return errors.Wrap(err, "failed to openfile")
-			}
-			defer f.Close()
-			_, err = io.Copy(f, rc)
-			if err != nil {
-				return errors.Wrap(err, "failed to copy")
-			}
-		}
-		return nil
-	}
-
-	for _, f := range r.File {
-		err := move(f)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func extractTar(src, dest string) error {
-	file, err := os.Open(src)
-	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("failed to open tgz file: %s", src))
-	}
-	defer file.Close()
-
-	rdr, err := gzip.NewReader(file)
-	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("failed to read tgz file: %s", src))
-	}
-	defer rdr.Close()
-
-	tr := tar.NewReader(rdr)
-
-	var header *tar.Header
-	for {
-		header, err = tr.Next()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			return errors.Wrap(err, "failed to read tar")
-		}
-
-		var buf *bytes.Buffer
-		_, err = io.Copy(buf, tr)
-		if err != nil {
-			return errors.Wrap(err, "failed io.Copy")
-		}
-
-		if err = ioutil.WriteFile(filepath.Join(dest, header.Name), buf.Bytes(), 0755); err != nil {
-			return errors.Wrap(err, fmt.Sprintf("failed to extract file: %s", src))
-		}
-	}
-	return nil
+	return fmt.Errorf("failed to extract file: %s", src)
 }
 
 func (gh *ghg) getRepoAndOwner() (owner, repo string, err error) {
