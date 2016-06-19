@@ -146,13 +146,16 @@ func extract(src, dest string) error {
 var targetReg = regexp.MustCompile(`^(?:([^/]+)/)?([^@]+)(?:@(.+))?$`)
 
 func (gh *ghg) getOwnerRepoAndTag() (owner, repo, tag string, err error) {
-	if matches := targetReg.FindStringSubmatch(gh.target); len(matches) == 4 {
-		owner = matches[1]
-		repo = matches[2]
-		tag = matches[3]
-		if owner == "" {
-			owner = repo
-		}
+	matches := targetReg.FindStringSubmatch(gh.target)
+	if len(matches) != 4 {
+		err = fmt.Errorf("failed to get owner, repo and tag")
+		return
+	}
+	owner = matches[1]
+	repo = matches[2]
+	tag = matches[3]
+	if owner == "" {
+		owner = repo
 	}
 	return
 }
