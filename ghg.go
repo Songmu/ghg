@@ -3,6 +3,7 @@ package ghg
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -26,9 +27,9 @@ func getOctCli(token string) *octokit.Client {
 }
 
 type ghg struct {
-	binDir  string
-	target  string
-	client  *octokit.Client
+	binDir string
+	target string
+	client *octokit.Client
 }
 
 func (gh *ghg) getBinDir() string {
@@ -42,10 +43,11 @@ var releaseByTagURL = octokit.Hyperlink("repos/{owner}/{repo}/releases/tags/{tag
 var archiveReg = regexp.MustCompile(`\.(?:zip|tgz|tar\.gz)$`)
 
 func (gh *ghg) install() error {
-	owner, repo, tag, err := gh.getOwnerRepoAndTag()
+	owner, repo, tag, err := getOwnerRepoAndTag(gh.target)
 	if err != nil {
 		return errors.Wrap(err, "failed to resolve target")
 	}
+	log.Printf("fetch the GitHub release for %s\n", gh.target)
 	var url *url.URL
 	if tag == "" {
 		url, err = octokit.ReleasesLatestURL.Expand(octokit.M{"owner": owner, "repo": repo})
@@ -69,14 +71,19 @@ func (gh *ghg) install() error {
 			urls = append(urls, fmt.Sprintf("https://github.com/%s/%s/releases/download/%s/%s", owner, repo, tag, name))
 		}
 	}
-
+	if len(urls) < 1 {
+		return fmt.Errorf("no assets available")
+	}
+	log.Printf("install %s/%s version: %s", owner, repo, tag)
 	for _, url := range urls {
+		log.Printf("download %s\n", url)
 		archivePath, err := download(url)
 		if err != nil {
 			return errors.Wrap(err, "failed to download")
 		}
 		workDir := filepath.Join(filepath.Dir(archivePath), "work")
 		os.MkdirAll(workDir, 0755)
+		log.Printf("extract %s\n", path.Base(url))
 		err = extract(archivePath, workDir)
 		if err != nil {
 			return errors.Wrap(err, "failed to extract")
@@ -145,8 +152,8 @@ func extract(src, dest string) error {
 
 var targetReg = regexp.MustCompile(`^(?:([^/]+)/)?([^@]+)(?:@(.+))?$`)
 
-func (gh *ghg) getOwnerRepoAndTag() (owner, repo, tag string, err error) {
-	matches := targetReg.FindStringSubmatch(gh.target)
+func getOwnerRepoAndTag(target string) (owner, repo, tag string, err error) {
+	matches := targetReg.FindStringSubmatch(target)
 	if len(matches) != 4 {
 		err = fmt.Errorf("failed to get owner, repo and tag")
 		return
@@ -169,6 +176,7 @@ func pickupExecutable(src, dest string) error {
 			return err
 		}
 		if name := info.Name(); (info.Mode()&0111) != 0 && executableReg.MatchString(name) {
+			log.Printf("install %s\n", name)
 			return os.Rename(path, filepath.Join(dest, name))
 		}
 		return nil

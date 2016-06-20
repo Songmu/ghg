@@ -18,7 +18,7 @@ const (
 const version = "0.0.0"
 
 type ghOpts struct {
-	Get     getCommand `description:"get stuffs" command:"get" subcommands-optional:"true"`
+	Get getCommand `description:"get stuffs" command:"get" subcommands-optional:"true"`
 }
 
 type getCommand struct {
@@ -50,6 +50,7 @@ type CLI struct {
 // Run the ghg
 func (cli *CLI) Run(argv []string) int {
 	log.SetOutput(cli.ErrStream)
+	log.SetFlags(0)
 	p, err := parseArgs(argv)
 	if err != nil {
 		if ferr, ok := err.(*flags.Error); !ok || ferr.Type != flags.ErrHelp {
@@ -72,7 +73,6 @@ func getToken() string {
 func parseArgs(args []string) (*flags.Parser, error) {
 	opts := &ghOpts{}
 	p := flags.NewParser(opts, flags.Default)
-	// p.Usage = "[OPTIONS]\n\nVersion: " + version
 	_, err := p.ParseArgs(args)
 	return p, err
 }
