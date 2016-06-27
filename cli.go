@@ -36,7 +36,7 @@ func (g *getCommand) Execute(args []string) error {
 		}
 		err := gh.install()
 		if err != nil {
-			log.Println(err.Error())
+			return err
 		}
 	}
 	return nil
@@ -51,12 +51,17 @@ type CLI struct {
 func (cli *CLI) Run(argv []string) int {
 	log.SetOutput(cli.ErrStream)
 	log.SetFlags(0)
-	p, err := parseArgs(argv)
+	err := parseArgs(argv)
 	if err != nil {
-		if ferr, ok := err.(*flags.Error); !ok || ferr.Type != flags.ErrHelp {
-			p.WriteHelp(cli.ErrStream)
+		if ferr, ok := err.(*flags.Error); ok {
+			if ferr.Type == flags.ErrHelp {
+				return exitCodeOK
+			}
+			log.Println(ferr.Error())
+			return exitCodeParseFlagErr
 		}
-		return exitCodeParseFlagErr
+		log.Println(err.Error())
+		return exitCodeErr
 	}
 	return exitCodeOK
 }
@@ -70,9 +75,8 @@ func getToken() string {
 	return token
 }
 
-func parseArgs(args []string) (*flags.Parser, error) {
+func parseArgs(args []string) error {
 	opts := &ghOpts{}
-	p := flags.NewParser(opts, flags.Default)
-	_, err := p.ParseArgs(args)
-	return p, err
+	_, err := flags.ParseArgs(opts, args)
+	return err
 }
