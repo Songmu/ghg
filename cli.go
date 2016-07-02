@@ -39,6 +39,7 @@ func (g *getCommand) Execute(args []string) error {
 			return err
 		}
 	}
+	log.Printf("done!")
 	return nil
 }
 
