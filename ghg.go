@@ -2,6 +2,7 @@ package ghg
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -108,9 +109,9 @@ func download(url string) (fpath string, err error) {
 		err = errors.Wrap(err, "failed to create request")
 		return
 	}
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		err = errors.Wrap(err, "failed to read response")
+	defer resp.Body.Close()
+	if resp.StatusCode != 200 {
+		err = fmt.Errorf("http response not OK. code: %d, url: %s", resp.StatusCode, url)
 		return
 	}
 	archiveBase := path.Base(url)
@@ -125,13 +126,13 @@ func download(url string) (fpath string, err error) {
 		}
 	}()
 	fpath = filepath.Join(tempdir, archiveBase)
-	f, err := os.OpenFile(filepath.Join(tempdir, archiveBase), os.O_CREATE|os.O_WRONLY, 0644)
+	f, err := os.Create(filepath.Join(tempdir, archiveBase))
 	if err != nil {
 		err = errors.Wrap(err, "failed to open file")
 		return
 	}
 	defer f.Close()
-	_, err = f.Write(body)
+	_, err = io.Copy(f, resp.Body)
 	if err != nil {
 		err = errors.Wrap(err, "failed to read response")
 		return
