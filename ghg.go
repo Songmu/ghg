@@ -15,6 +15,7 @@ import (
 	"strings"
 
 	"github.com/mholt/archiver"
+	"github.com/mitchellh/ioprogress"
 	"github.com/octokit/go-octokit/octokit"
 	"github.com/pkg/errors"
 )
@@ -132,7 +133,11 @@ func download(url string) (fpath string, err error) {
 		return
 	}
 	defer f.Close()
-	_, err = io.Copy(f, resp.Body)
+	progressR := &ioprogress.Reader{
+		Reader: resp.Body,
+		Size:   resp.ContentLength,
+	}
+	_, err = io.Copy(f, progressR)
 	if err != nil {
 		err = errors.Wrap(err, "failed to read response")
 		return
