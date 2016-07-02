@@ -18,8 +18,28 @@ const (
 const version = "0.0.0"
 
 type ghOpts struct {
+	Get getCommand `description:"get stuffs" command:"get" subcommands-optional:"true"`
+}
+
+type getCommand struct {
 	BinDir  string
 	targets []string
+}
+
+func (g *getCommand) Execute(args []string) error {
+	ghcli := getOctCli(getToken())
+	for _, target := range args {
+		gh := &ghg{
+			binDir: g.BinDir,
+			target: target,
+			client: ghcli,
+		}
+		err := gh.install()
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // CLI is struct for command line tool
@@ -30,25 +50,18 @@ type CLI struct {
 // Run the ghg
 func (cli *CLI) Run(argv []string) int {
 	log.SetOutput(cli.ErrStream)
-	p, opts, err := parseArgs(argv)
+	log.SetFlags(0)
+	err := parseArgs(argv)
 	if err != nil {
-		if ferr, ok := err.(*flags.Error); !ok || ferr.Type != flags.ErrHelp {
-			p.WriteHelp(cli.ErrStream)
+		if ferr, ok := err.(*flags.Error); ok {
+			if ferr.Type == flags.ErrHelp {
+				return exitCodeOK
+			}
+			log.Println(ferr.Error())
+			return exitCodeParseFlagErr
 		}
-		return exitCodeParseFlagErr
-	}
-
-	ghcli := getOctCli(getToken())
-	for _, target := range opts.targets {
-		gh := &ghg{
-			binDir: opts.BinDir,
-			target: target,
-			client: ghcli,
-		}
-		err := gh.install()
-		if err != nil {
-			log.Println(err.Error())
-		}
+		log.Println(err.Error())
+		return exitCodeErr
 	}
 	return exitCodeOK
 }
@@ -62,11 +75,8 @@ func getToken() string {
 	return token
 }
 
-func parseArgs(args []string) (*flags.Parser, *ghOpts, error) {
+func parseArgs(args []string) error {
 	opts := &ghOpts{}
-	p := flags.NewParser(opts, flags.Default)
-	p.Usage = "[OPTIONS]\n\nVersion: " + version
-	rest, err := p.ParseArgs(args)
-	opts.targets = rest
-	return p, opts, err
+	_, err := flags.ParseArgs(opts, args)
+	return err
 }
