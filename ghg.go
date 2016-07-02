@@ -133,16 +133,28 @@ func download(url string) (fpath string, err error) {
 		return
 	}
 	defer f.Close()
-	progressR := &ioprogress.Reader{
-		Reader: resp.Body,
-		Size:   resp.ContentLength,
-	}
+	progressR := progbar(resp.Body, resp.ContentLength)
 	_, err = io.Copy(f, progressR)
 	if err != nil {
 		err = errors.Wrap(err, "failed to read response")
 		return
 	}
 	return fpath, nil
+}
+
+func progbar(r io.Reader, size int64) io.Reader {
+	bar := ioprogress.DrawTextFormatBar(40)
+	f := func(progress, total int64) string {
+		return fmt.Sprintf(
+			"%s %s",
+			bar(progress, total),
+			ioprogress.DrawTextFormatBytes(progress, total))
+	}
+	return &ioprogress.Reader{
+		Reader: r,
+		Size:   size,
+		DrawFunc: ioprogress.DrawTerminalf(os.Stderr, f),
+	}
 }
 
 func extract(src, dest string) error {
