@@ -61,7 +61,7 @@ func (gh *ghg) install() error {
 	}
 	release, r := gh.client.Releases(url).Latest()
 	if r.HasError() {
-		return errors.Wrap(r.Err, "failed to fetch latest release")
+		return errors.Wrap(r.Err, "failed to fetch a release")
 	}
 	tag = release.TagName
 	goarch := runtime.GOARCH
