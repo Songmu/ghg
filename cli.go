@@ -41,7 +41,7 @@ func (g *getCommand) Execute(args []string) error {
 			target: target,
 			client: ghcli,
 		}
-		err := gh.install()
+		err := gh.get()
 		if err != nil {
 			return err
 		}

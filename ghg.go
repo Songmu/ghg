@@ -44,7 +44,7 @@ func (gh *ghg) getBinDir() string {
 var releaseByTagURL = octokit.Hyperlink("repos/{owner}/{repo}/releases/tags/{tag}")
 var archiveReg = regexp.MustCompile(`\.(?:zip|tgz|tar\.gz)$`)
 
-func (gh *ghg) install() error {
+func (gh *ghg) get() error {
 	owner, repo, tag, err := getOwnerRepoAndTag(gh.target)
 	if err != nil {
 		return errors.Wrap(err, "failed to resolve target")
@@ -78,24 +78,32 @@ func (gh *ghg) install() error {
 	}
 	log.Printf("install %s/%s version: %s", owner, repo, tag)
 	for _, url := range urls {
-		log.Printf("download %s\n", url)
-		archivePath, err := download(url)
+		err := gh.install(url)
 		if err != nil {
-			return errors.Wrap(err, "failed to download")
+			return err
 		}
-		workDir := filepath.Join(filepath.Dir(archivePath), "work")
-		os.MkdirAll(workDir, 0755)
-		log.Printf("extract %s\n", path.Base(url))
-		err = extract(archivePath, workDir)
-		if err != nil {
-			return errors.Wrap(err, "failed to extract")
-		}
-		bin := gh.getBinDir()
-		os.MkdirAll(bin, 0755)
-		err = pickupExecutable(workDir, gh.getBinDir())
-		if err != nil {
-			return errors.Wrap(err, "failed to pickup")
-		}
+	}
+	return nil
+}
+
+func (gh *ghg) install(url string) error {
+	log.Printf("download %s\n", url)
+	archivePath, err := download(url)
+	if err != nil {
+		return errors.Wrap(err, "failed to download")
+	}
+	workDir := filepath.Join(filepath.Dir(archivePath), "work")
+	os.MkdirAll(workDir, 0755)
+	log.Printf("extract %s\n", path.Base(url))
+	err = extract(archivePath, workDir)
+	if err != nil {
+		return errors.Wrap(err, "failed to extract")
+	}
+	bin := gh.getBinDir()
+	os.MkdirAll(bin, 0755)
+	err = pickupExecutable(workDir, bin)
+	if err != nil {
+		return errors.Wrap(err, "failed to pickup")
 	}
 	return nil
 }
