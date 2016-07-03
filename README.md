@@ -1,6 +1,8 @@
 ghg
 =======
 
+**STILL UNDER DEVELOPMENT**
+
 [![Build Status](https://travis-ci.org/Songmu/ghg.png?branch=master)][travis]
 [![MIT License](http://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)][license]
 [![GoDoc](https://godoc.org/github.com/Songmu/ghg?status.svg)](godoc)
