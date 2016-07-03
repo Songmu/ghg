@@ -29,9 +29,10 @@ func getOctCli(token string) *octokit.Client {
 }
 
 type ghg struct {
-	binDir string
-	target string
-	client *octokit.Client
+	binDir  string
+	target  string
+	client  *octokit.Client
+	upgrade bool
 }
 
 func (gh *ghg) getBinDir() string {
@@ -204,15 +205,28 @@ func getOwnerRepoAndTag(target string) (owner, repo, tag string, err error) {
 var executableReg = regexp.MustCompile(`^[a-z][-_a-zA-Z0-9]+(?:\.exe)?$`)
 
 func (gh *ghg) pickupExecutable(src string) error {
-	dest := gh.getBinDir()
+	bindir := gh.getBinDir()
 	return filepath.Walk(src, func(path string, info os.FileInfo, err error) error {
 		if err != nil || info.IsDir() {
 			return err
 		}
 		if name := info.Name(); (info.Mode()&0111) != 0 && executableReg.MatchString(name) {
+			dest := filepath.Join(bindir, name)
+			if exists(dest) {
+				if !gh.upgrade {
+					log.Printf("%s already exists. skip installing. You can use -u flag for overwrite it", dest)
+					return nil
+				}
+				log.Printf("%s exists. overwrite it", dest)
+			}
 			log.Printf("install %s\n", name)
-			return os.Rename(path, filepath.Join(dest, name))
+			return os.Rename(path, dest)
 		}
 		return nil
 	})
+}
+
+func exists(filename string) bool {
+	_, err := os.Stat(filename)
+	return err == nil
 }
