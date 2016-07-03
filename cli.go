@@ -1,11 +1,14 @@
 package ghg
 
 import (
+	"fmt"
 	"io"
 	"log"
 	"os"
+	"path/filepath"
 
 	"github.com/jessevdk/go-flags"
+	"github.com/mitchellh/go-homedir"
 	"github.com/tcnksm/go-gitconfig"
 )
 
@@ -19,18 +22,22 @@ const version = "0.0.0"
 
 type ghOpts struct {
 	Get getCommand `description:"get stuffs" command:"get" subcommands-optional:"true"`
+	Bin binCommand `description:"display bin dir" command:"bin" subcommands-optional:"true"`
 }
 
 type getCommand struct {
-	BinDir  string
 	targets []string
 }
 
 func (g *getCommand) Execute(args []string) error {
+	bin, err := ghgBin()
+	if err != nil {
+		return err
+	}
 	ghcli := getOctCli(getToken())
 	for _, target := range args {
 		gh := &ghg{
-			binDir: g.BinDir,
+			binDir: bin,
 			target: target,
 			client: ghcli,
 		}
@@ -40,6 +47,37 @@ func (g *getCommand) Execute(args []string) error {
 		}
 	}
 	log.Printf("done!")
+	return nil
+}
+
+func ghgHome() (string, error) {
+	ghome := os.Getenv("GHG_HOME")
+	if ghome != "" {
+		return ghome, nil
+	}
+	home, err := homedir.Dir()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(home, ".ghg"), nil
+}
+
+func ghgBin() (string, error) {
+	home, err := ghgHome()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(home, "bin"), nil
+}
+
+type binCommand struct{}
+
+func (b *binCommand) Execute(args []string) error {
+	bin, err := ghgBin()
+	if err != nil {
+		return err
+	}
+	fmt.Print(bin)
 	return nil
 }
 

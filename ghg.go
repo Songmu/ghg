@@ -90,6 +90,8 @@ func (gh *ghg) install() error {
 		if err != nil {
 			return errors.Wrap(err, "failed to extract")
 		}
+		bin := gh.getBinDir()
+		os.MkdirAll(bin, 0755)
 		err = pickupExecutable(workDir, gh.getBinDir())
 		if err != nil {
 			return errors.Wrap(err, "failed to pickup")
