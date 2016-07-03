@@ -92,16 +92,22 @@ func (gh *ghg) install(url string) error {
 	if err != nil {
 		return errors.Wrap(err, "failed to download")
 	}
-	workDir := filepath.Join(filepath.Dir(archivePath), "work")
+	tmpdir := filepath.Dir(archivePath)
+	defer os.RemoveAll(tmpdir)
+
+	workDir := filepath.Join(tmpdir, "work")
 	os.MkdirAll(workDir, 0755)
+
 	log.Printf("extract %s\n", path.Base(url))
 	err = extract(archivePath, workDir)
 	if err != nil {
 		return errors.Wrap(err, "failed to extract")
 	}
+
 	bin := gh.getBinDir()
 	os.MkdirAll(bin, 0755)
-	err = pickupExecutable(workDir, bin)
+
+	err = gh.pickupExecutable(workDir)
 	if err != nil {
 		return errors.Wrap(err, "failed to pickup")
 	}
@@ -197,8 +203,8 @@ func getOwnerRepoAndTag(target string) (owner, repo, tag string, err error) {
 
 var executableReg = regexp.MustCompile(`^[a-z][-_a-zA-Z0-9]+(?:\.exe)?$`)
 
-func pickupExecutable(src, dest string) error {
-	defer os.RemoveAll(src)
+func (gh *ghg) pickupExecutable(src string) error {
+	dest := gh.getBinDir()
 	return filepath.Walk(src, func(path string, info os.FileInfo, err error) error {
 		if err != nil || info.IsDir() {
 			return err
