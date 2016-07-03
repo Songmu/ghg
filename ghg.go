@@ -2,6 +2,7 @@ package ghg
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -14,6 +15,7 @@ import (
 	"strings"
 
 	"github.com/mholt/archiver"
+	"github.com/mitchellh/ioprogress"
 	"github.com/octokit/go-octokit/octokit"
 	"github.com/pkg/errors"
 )
@@ -59,7 +61,7 @@ func (gh *ghg) install() error {
 	}
 	release, r := gh.client.Releases(url).Latest()
 	if r.HasError() {
-		return errors.Wrap(r.Err, "failed to fetch latest release")
+		return errors.Wrap(r.Err, "failed to fetch a release")
 	}
 	tag = release.TagName
 	goarch := runtime.GOARCH
@@ -108,9 +110,9 @@ func download(url string) (fpath string, err error) {
 		err = errors.Wrap(err, "failed to create request")
 		return
 	}
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		err = errors.Wrap(err, "failed to read response")
+	defer resp.Body.Close()
+	if resp.StatusCode != 200 {
+		err = fmt.Errorf("http response not OK. code: %d, url: %s", resp.StatusCode, url)
 		return
 	}
 	archiveBase := path.Base(url)
@@ -125,18 +127,34 @@ func download(url string) (fpath string, err error) {
 		}
 	}()
 	fpath = filepath.Join(tempdir, archiveBase)
-	f, err := os.OpenFile(filepath.Join(tempdir, archiveBase), os.O_CREATE|os.O_WRONLY, 0644)
+	f, err := os.Create(filepath.Join(tempdir, archiveBase))
 	if err != nil {
 		err = errors.Wrap(err, "failed to open file")
 		return
 	}
 	defer f.Close()
-	_, err = f.Write(body)
+	progressR := progbar(resp.Body, resp.ContentLength)
+	_, err = io.Copy(f, progressR)
 	if err != nil {
 		err = errors.Wrap(err, "failed to read response")
 		return
 	}
 	return fpath, nil
+}
+
+func progbar(r io.Reader, size int64) io.Reader {
+	bar := ioprogress.DrawTextFormatBar(40)
+	f := func(progress, total int64) string {
+		return fmt.Sprintf(
+			"%s %s",
+			bar(progress, total),
+			ioprogress.DrawTextFormatBytes(progress, total))
+	}
+	return &ioprogress.Reader{
+		Reader: r,
+		Size:   size,
+		DrawFunc: ioprogress.DrawTerminalf(os.Stderr, f),
+	}
 }
 
 func extract(src, dest string) error {

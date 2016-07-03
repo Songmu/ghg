@@ -39,6 +39,7 @@ func (g *getCommand) Execute(args []string) error {
 			return err
 		}
 	}
+	log.Printf("done!")
 	return nil
 }
 
@@ -57,10 +58,8 @@ func (cli *CLI) Run(argv []string) int {
 			if ferr.Type == flags.ErrHelp {
 				return exitCodeOK
 			}
-			log.Println(ferr.Error())
 			return exitCodeParseFlagErr
 		}
-		log.Println(err.Error())
 		return exitCodeErr
 	}
 	return exitCodeOK
