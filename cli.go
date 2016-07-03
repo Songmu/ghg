@@ -27,6 +27,7 @@ type ghOpts struct {
 
 type getCommand struct {
 	targets []string
+	Upgrade bool `short:"u" description:"overwrite the executable even if exists"`
 }
 
 func (g *getCommand) Execute(args []string) error {
@@ -37,9 +38,10 @@ func (g *getCommand) Execute(args []string) error {
 	ghcli := getOctCli(getToken())
 	for _, target := range args {
 		gh := &ghg{
-			binDir: bin,
-			target: target,
-			client: ghcli,
+			binDir:  bin,
+			target:  target,
+			client:  ghcli,
+			upgrade: g.Upgrade,
 		}
 		err := gh.get()
 		if err != nil {

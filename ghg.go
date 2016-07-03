@@ -29,9 +29,10 @@ func getOctCli(token string) *octokit.Client {
 }
 
 type ghg struct {
-	binDir string
-	target string
-	client *octokit.Client
+	binDir  string
+	target  string
+	client  *octokit.Client
+	upgrade bool
 }
 
 func (gh *ghg) getBinDir() string {
@@ -92,16 +93,22 @@ func (gh *ghg) install(url string) error {
 	if err != nil {
 		return errors.Wrap(err, "failed to download")
 	}
-	workDir := filepath.Join(filepath.Dir(archivePath), "work")
+	tmpdir := filepath.Dir(archivePath)
+	defer os.RemoveAll(tmpdir)
+
+	workDir := filepath.Join(tmpdir, "work")
 	os.MkdirAll(workDir, 0755)
+
 	log.Printf("extract %s\n", path.Base(url))
 	err = extract(archivePath, workDir)
 	if err != nil {
 		return errors.Wrap(err, "failed to extract")
 	}
+
 	bin := gh.getBinDir()
 	os.MkdirAll(bin, 0755)
-	err = pickupExecutable(workDir, bin)
+
+	err = gh.pickupExecutable(workDir)
 	if err != nil {
 		return errors.Wrap(err, "failed to pickup")
 	}
@@ -161,8 +168,8 @@ func progbar(r io.Reader, size int64) io.Reader {
 			ioprogress.DrawTextFormatBytes(progress, total))
 	}
 	return &ioprogress.Reader{
-		Reader: r,
-		Size:   size,
+		Reader:   r,
+		Size:     size,
 		DrawFunc: ioprogress.DrawTerminalf(os.Stderr, f),
 	}
 }
@@ -197,16 +204,29 @@ func getOwnerRepoAndTag(target string) (owner, repo, tag string, err error) {
 
 var executableReg = regexp.MustCompile(`^[a-z][-_a-zA-Z0-9]+(?:\.exe)?$`)
 
-func pickupExecutable(src, dest string) error {
-	defer os.RemoveAll(src)
+func (gh *ghg) pickupExecutable(src string) error {
+	bindir := gh.getBinDir()
 	return filepath.Walk(src, func(path string, info os.FileInfo, err error) error {
 		if err != nil || info.IsDir() {
 			return err
 		}
 		if name := info.Name(); (info.Mode()&0111) != 0 && executableReg.MatchString(name) {
+			dest := filepath.Join(bindir, name)
+			if exists(dest) {
+				if !gh.upgrade {
+					log.Printf("%s already exists. skip installing. You can use -u flag for overwrite it", dest)
+					return nil
+				}
+				log.Printf("%s exists. overwrite it", dest)
+			}
 			log.Printf("install %s\n", name)
-			return os.Rename(path, filepath.Join(dest, name))
+			return os.Rename(path, dest)
 		}
 		return nil
 	})
+}
+
+func exists(filename string) bool {
+	_, err := os.Stat(filename)
+	return err == nil
 }
