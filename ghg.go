@@ -168,8 +168,8 @@ func progbar(r io.Reader, size int64) io.Reader {
 			ioprogress.DrawTextFormatBytes(progress, total))
 	}
 	return &ioprogress.Reader{
-		Reader: r,
-		Size:   size,
+		Reader:   r,
+		Size:     size,
 		DrawFunc: ioprogress.DrawTerminalf(os.Stderr, f),
 	}
 }
