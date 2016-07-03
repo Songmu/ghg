@@ -23,6 +23,7 @@ const version = "0.0.0"
 type ghOpts struct {
 	Get getCommand `description:"get stuffs" command:"get" subcommands-optional:"true"`
 	Bin binCommand `description:"display bin dir" command:"bin" subcommands-optional:"true"`
+	Ver verCommand `description:"display version" command:"version" subcommands-optional:"true"`
 }
 
 type getCommand struct {
@@ -80,6 +81,13 @@ func (b *binCommand) Execute(args []string) error {
 		return err
 	}
 	fmt.Print(bin)
+	return nil
+}
+
+type verCommand struct{}
+
+func (b *verCommand) Execute(args []string) error {
+	fmt.Printf("ghg version: %s", version)
 	return nil
 }
 
