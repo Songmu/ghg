@@ -18,6 +18,9 @@ Get the executable from github releases
 
     % go get github.com/Songmu/ghg/cmd/ghg
 
+Built binaries are available on gihub releases.
+<https://github.com/Songmu/ghg/releases>
+
 ## Synopsis
 
     % ghg get tcnksm/ghr
