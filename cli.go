@@ -18,7 +18,7 @@ const (
 	exitCodeErr
 )
 
-const version = "0.0.2"
+const version = "0.0.3"
 
 type ghOpts struct {
 	Get getCommand `description:"get stuffs" command:"get" subcommands-optional:"true"`
