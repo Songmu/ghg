@@ -220,7 +220,10 @@ func (gh *ghg) pickupExecutable(src string) error {
 				log.Printf("%s exists. overwrite it", dest)
 			}
 			log.Printf("install %s\n", name)
-			return os.Rename(path, dest)
+			err := os.Rename(path, dest)
+			if err != nil {
+				return copyExecutable(path, dest)
+			}
 		}
 		return nil
 	})
@@ -229,4 +232,30 @@ func (gh *ghg) pickupExecutable(src string) error {
 func exists(filename string) bool {
 	_, err := os.Stat(filename)
 	return err == nil
+}
+
+func copyExecutable(srcName string, destName string) error {
+	src, err := os.Open(srcName)
+	if err != nil {
+		return err
+	}
+	defer src.Close()
+
+	dest, err := os.Create(destName)
+	if err != nil {
+		return err
+	}
+	defer dest.Close()
+
+	_, err = io.Copy(dest, src)
+	if err != nil {
+		return err
+	}
+
+	fileInfo, err := os.Stat(srcName)
+	if err != nil {
+		return err
+	}
+
+	return os.Chmod(destName, fileInfo.Mode())
 }
