@@ -177,10 +177,10 @@ func progbar(r io.Reader, size int64) io.Reader {
 func extract(src, dest string) error {
 	base := filepath.Base(src)
 	if strings.HasSuffix(base, ".zip") {
-		return archiver.Unzip(src, dest)
+		return archiver.Zip.Open(src, dest)
 	}
 	if strings.HasSuffix(base, ".tar.gz") || strings.HasSuffix(base, ".tgz") {
-		return archiver.UntarGz(src, dest)
+		return archiver.TarGz.Open(src, dest)
 	}
 	return fmt.Errorf("failed to extract file: %s", src)
 }
