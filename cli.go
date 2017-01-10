@@ -80,14 +80,14 @@ func (b *binCommand) Execute(args []string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Print(bin)
+	fmt.Println(bin)
 	return nil
 }
 
 type verCommand struct{}
 
 func (b *verCommand) Execute(args []string) error {
-	fmt.Printf("ghg version: %s", version)
+	fmt.Printf("ghg version: %s\n", version)
 	return nil
 }
 
