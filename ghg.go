@@ -43,7 +43,6 @@ func (gh *ghg) getBinDir() string {
 }
 
 var releaseByTagURL = octokit.Hyperlink("repos/{owner}/{repo}/releases/tags/{tag}")
-var archiveReg = regexp.MustCompile(`\.(?:zip|tgz|tar\.gz)$`)
 
 func (gh *ghg) get() error {
 	owner, repo, tag, err := getOwnerRepoAndTag(gh.target)
@@ -70,7 +69,7 @@ func (gh *ghg) get() error {
 	var urls []string
 	for _, asset := range release.Assets {
 		name := asset.Name
-		if strings.Contains(name, goarch) && strings.Contains(name, goos) && archiveReg.MatchString(name) {
+		if strings.Contains(name, goarch) && strings.Contains(name, goos) {
 			urls = append(urls, fmt.Sprintf("https://github.com/%s/%s/releases/download/%s/%s", owner, repo, tag, name))
 		}
 	}
@@ -87,6 +86,8 @@ func (gh *ghg) get() error {
 	return nil
 }
 
+var archiveReg = regexp.MustCompile(`\.(?:zip|tgz|tar\.gz)$`)
+
 func (gh *ghg) install(url string) error {
 	log.Printf("download %s\n", url)
 	archivePath, err := download(url)
@@ -96,21 +97,43 @@ func (gh *ghg) install(url string) error {
 	tmpdir := filepath.Dir(archivePath)
 	defer os.RemoveAll(tmpdir)
 
-	workDir := filepath.Join(tmpdir, "work")
-	os.MkdirAll(workDir, 0755)
+	if archiveReg.MatchString(url) {
+		workDir := filepath.Join(tmpdir, "work")
+		os.MkdirAll(workDir, 0755)
 
-	log.Printf("extract %s\n", path.Base(url))
-	err = extract(archivePath, workDir)
-	if err != nil {
-		return errors.Wrap(err, "failed to extract")
-	}
+		log.Printf("extract %s\n", path.Base(url))
+		err = extract(archivePath, workDir)
+		if err != nil {
+			return errors.Wrap(err, "failed to extract")
+		}
 
-	bin := gh.getBinDir()
-	os.MkdirAll(bin, 0755)
+		bin := gh.getBinDir()
+		os.MkdirAll(bin, 0755)
 
-	err = gh.pickupExecutable(workDir)
-	if err != nil {
-		return errors.Wrap(err, "failed to pickup")
+		err = gh.pickupExecutable(workDir)
+		if err != nil {
+			return errors.Wrap(err, "failed to pickup")
+		}
+	} else {
+		_, repo, _, _ := getOwnerRepoAndTag(gh.target)
+		name := lcs(repo, filepath.Base(archivePath))
+		name = strings.Trim(name, "-_")
+		if name == "" {
+			name = repo
+		}
+		dest := filepath.Join(gh.getBinDir(), name)
+		if exists(dest) {
+			if !gh.upgrade {
+				log.Printf("%s already exists. skip installing. You can use -u flag for overwrite it", dest)
+				return nil
+			}
+			log.Printf("%s exists. overwrite it", dest)
+		}
+		log.Printf("install %s\n", name)
+		err := os.Rename(archivePath, dest)
+		if err != nil {
+			return copyExecutable(archivePath, dest)
+		}
 	}
 	return nil
 }
@@ -258,4 +281,47 @@ func copyExecutable(srcName string, destName string) error {
 	}
 
 	return os.Chmod(destName, fileInfo.Mode())
+}
+
+func lcs(a, b string) string {
+	arunes := []rune(a)
+	brunes := []rune(b)
+	aLen := len(arunes)
+	bLen := len(brunes)
+	lengths := make([][]int, aLen+1)
+	for i := 0; i <= aLen; i++ {
+		lengths[i] = make([]int, bLen+1)
+	}
+	// row 0 and column 0 are initialized to 0 already
+
+	for i := 0; i < aLen; i++ {
+		for j := 0; j < bLen; j++ {
+			if arunes[i] == brunes[j] {
+				lengths[i+1][j+1] = lengths[i][j] + 1
+			} else if lengths[i+1][j] > lengths[i][j+1] {
+				lengths[i+1][j+1] = lengths[i+1][j]
+			} else {
+				lengths[i+1][j+1] = lengths[i][j+1]
+			}
+		}
+	}
+
+	// read the substring out from the matrix
+	s := make([]rune, 0, lengths[aLen][bLen])
+	for x, y := aLen, bLen; x != 0 && y != 0; {
+		if lengths[x][y] == lengths[x-1][y] {
+			x--
+		} else if lengths[x][y] == lengths[x][y-1] {
+			y--
+		} else {
+			s = append(s, arunes[x-1])
+			x--
+			y--
+		}
+	}
+	// reverse string
+	for i, j := 0, len(s)-1; i < j; i, j = i+1, j-1 {
+		s[i], s[j] = s[j], s[i]
+	}
+	return string(s)
 }
