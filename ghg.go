@@ -104,8 +104,10 @@ func (gh *ghg) install(url string) error {
 		if name == "" {
 			name = repo
 		}
-		dest := filepath.Join(gh.getBinDir(), name)
-		return gh.place(archivePath, dest)
+		if runtime.GOOS == "windows" {
+			name += ".exe"
+		}
+		return gh.place(archivePath, filepath.Join(gh.getBinDir(), name))
 	}
 	workDir := filepath.Join(tmpdir, "work")
 	os.MkdirAll(workDir, 0755)
@@ -229,7 +231,13 @@ func getOwnerRepoAndTag(target string) (owner, repo, tag string, err error) {
 	return
 }
 
-var executableReg = regexp.MustCompile(`^[a-z][-_a-zA-Z0-9]+(?:\.exe)?$`)
+var executableReg = func() *regexp.Regexp {
+	s := `^[a-z][-_a-zA-Z0-9]+`
+	if runtime.GOOS == "windows" {
+		s += `\.exe`
+	}
+	return regexp.MustCompile(s + `$`)
+}()
 
 func (gh *ghg) pickupExecutable(src string) error {
 	bindir := gh.getBinDir()
