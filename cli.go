@@ -53,6 +53,7 @@ func (g *getCommand) Execute(args []string) error {
 	return nil
 }
 
+// EnvHome is key of enviroment variable represents ghg home
 const EnvHome = "GHG_HOME"
 
 func ghgHome() (string, error) {
