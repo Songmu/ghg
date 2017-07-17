@@ -44,8 +44,8 @@ func (gh *ghg) getBinDir() string {
 
 var releaseByTagURL = octokit.Hyperlink("repos/{owner}/{repo}/releases/tags/{tag}")
 var (
-	archiveReg            = regexp.MustCompile(`\.(?:zip|tgz|tar\.gz)$`)
-	anyExtReg = regexp.MustCompile(`\.[a-zA-Z0-9]+$`)
+	archiveReg = regexp.MustCompile(`\.(?:zip|tgz|tar\.gz)$`)
+	anyExtReg  = regexp.MustCompile(`\.[a-zA-Z0-9]+$`)
 )
 
 func (gh *ghg) get() error {

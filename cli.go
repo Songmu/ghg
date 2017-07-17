@@ -53,8 +53,10 @@ func (g *getCommand) Execute(args []string) error {
 	return nil
 }
 
+const EnvHome = "GHG_HOME"
+
 func ghgHome() (string, error) {
-	ghome := os.Getenv("GHG_HOME")
+	ghome := os.Getenv(EnvHome)
 	if ghome != "" {
 		return ghome, nil
 	}
