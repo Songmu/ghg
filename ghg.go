@@ -43,6 +43,10 @@ func (gh *ghg) getBinDir() string {
 }
 
 var releaseByTagURL = octokit.Hyperlink("repos/{owner}/{repo}/releases/tags/{tag}")
+var (
+	archiveReg            = regexp.MustCompile(`\.(?:zip|tgz|tar\.gz)$`)
+	anyExtReg = regexp.MustCompile(`\.[a-zA-Z0-9]+$`)
+)
 
 func (gh *ghg) get() error {
 	owner, repo, tag, err := getOwnerRepoAndTag(gh.target)
@@ -69,7 +73,8 @@ func (gh *ghg) get() error {
 	var urls []string
 	for _, asset := range release.Assets {
 		name := asset.Name
-		if strings.Contains(name, goarch) && strings.Contains(name, goos) {
+		if strings.Contains(name, goarch) && strings.Contains(name, goos) &&
+			(archiveReg.MatchString(name) || !anyExtReg.MatchString(name)) {
 			urls = append(urls, fmt.Sprintf("https://github.com/%s/%s/releases/download/%s/%s", owner, repo, tag, name))
 		}
 	}
@@ -85,8 +90,6 @@ func (gh *ghg) get() error {
 	}
 	return nil
 }
-
-var archiveReg = regexp.MustCompile(`\.(?:zip|tgz|tar\.gz)$`)
 
 func (gh *ghg) install(url string) error {
 	log.Printf("download %s\n", url)
