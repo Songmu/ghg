@@ -97,24 +97,7 @@ func (gh *ghg) install(url string) error {
 	tmpdir := filepath.Dir(archivePath)
 	defer os.RemoveAll(tmpdir)
 
-	if archiveReg.MatchString(url) {
-		workDir := filepath.Join(tmpdir, "work")
-		os.MkdirAll(workDir, 0755)
-
-		log.Printf("extract %s\n", path.Base(url))
-		err = extract(archivePath, workDir)
-		if err != nil {
-			return errors.Wrap(err, "failed to extract")
-		}
-
-		bin := gh.getBinDir()
-		os.MkdirAll(bin, 0755)
-
-		err = gh.pickupExecutable(workDir)
-		if err != nil {
-			return errors.Wrap(err, "failed to pickup")
-		}
-	} else {
+	if !archiveReg.MatchString(url) {
 		_, repo, _, _ := getOwnerRepoAndTag(gh.target)
 		name := lcs(repo, filepath.Base(archivePath))
 		name = strings.Trim(name, "-_")
@@ -122,18 +105,39 @@ func (gh *ghg) install(url string) error {
 			name = repo
 		}
 		dest := filepath.Join(gh.getBinDir(), name)
-		if exists(dest) {
-			if !gh.upgrade {
-				log.Printf("%s already exists. skip installing. You can use -u flag for overwrite it", dest)
-				return nil
-			}
-			log.Printf("%s exists. overwrite it", dest)
+		return gh.place(archivePath, dest)
+	}
+	workDir := filepath.Join(tmpdir, "work")
+	os.MkdirAll(workDir, 0755)
+
+	log.Printf("extract %s\n", path.Base(url))
+	err = extract(archivePath, workDir)
+	if err != nil {
+		return errors.Wrap(err, "failed to extract")
+	}
+
+	bin := gh.getBinDir()
+	os.MkdirAll(bin, 0755)
+
+	err = gh.pickupExecutable(workDir)
+	if err != nil {
+		return errors.Wrap(err, "failed to pickup")
+	}
+	return nil
+}
+
+func (gh *ghg) place(src, dest string) error {
+	if exists(dest) {
+		if !gh.upgrade {
+			log.Printf("%s already exists. skip installing. You can use -u flag for overwrite it", dest)
+			return nil
 		}
-		log.Printf("install %s\n", name)
-		err := os.Rename(archivePath, dest)
-		if err != nil {
-			return copyExecutable(archivePath, dest)
-		}
+		log.Printf("%s exists. overwrite it", dest)
+	}
+	log.Printf("install %s\n", filepath.Base(dest))
+	err := os.Rename(src, dest)
+	if err != nil {
+		return copyExecutable(src, dest)
 	}
 	return nil
 }
@@ -167,7 +171,7 @@ func download(url string) (fpath string, err error) {
 		}
 	}()
 	fpath = filepath.Join(tempdir, archiveBase)
-	f, err := os.Create(filepath.Join(tempdir, archiveBase))
+	f, err := os.OpenFile(filepath.Join(tempdir, archiveBase), os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
 	if err != nil {
 		err = errors.Wrap(err, "failed to open file")
 		return
@@ -234,19 +238,7 @@ func (gh *ghg) pickupExecutable(src string) error {
 			return err
 		}
 		if name := info.Name(); (info.Mode()&0111) != 0 && executableReg.MatchString(name) {
-			dest := filepath.Join(bindir, name)
-			if exists(dest) {
-				if !gh.upgrade {
-					log.Printf("%s already exists. skip installing. You can use -u flag for overwrite it", dest)
-					return nil
-				}
-				log.Printf("%s exists. overwrite it", dest)
-			}
-			log.Printf("install %s\n", name)
-			err := os.Rename(path, dest)
-			if err != nil {
-				return copyExecutable(path, dest)
-			}
+			return gh.place(path, filepath.Join(bindir, name))
 		}
 		return nil
 	})
