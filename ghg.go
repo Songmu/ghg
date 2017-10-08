@@ -85,6 +85,10 @@ func (gh *ghg) get() error {
 	if len(urls) < 1 {
 		return fmt.Errorf("no assets available")
 	}
+	err = os.MkdirAll(filepath.Join(gh.getGhgHome(), "tmp"), 0755)
+	if err != nil {
+		return errors.Wrap(err, "failed to create tmpdir")
+	}
 	log.Printf("install %s/%s version: %s", owner, repo, tag)
 	for _, url := range urls {
 		err := gh.install(url)
@@ -97,7 +101,7 @@ func (gh *ghg) get() error {
 
 func (gh *ghg) install(url string) error {
 	log.Printf("download %s\n", url)
-	archivePath, err := download(url)
+	archivePath, err := gh.download(url)
 	if err != nil {
 		return errors.Wrap(err, "failed to download")
 	}
@@ -144,14 +148,10 @@ func (gh *ghg) place(src, dest string) error {
 		log.Printf("%s exists. overwrite it", dest)
 	}
 	log.Printf("install %s\n", filepath.Base(dest))
-	err := os.Rename(src, dest)
-	if err != nil {
-		return copyExecutable(src, dest)
-	}
-	return nil
+	return os.Rename(src, dest)
 }
 
-func download(url string) (fpath string, err error) {
+func (gh *ghg) download(url string) (fpath string, err error) {
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		err = errors.Wrap(err, "failed to create request")
@@ -169,7 +169,7 @@ func download(url string) (fpath string, err error) {
 		return
 	}
 	archiveBase := path.Base(url)
-	tempdir, err := ioutil.TempDir("", "ghg-")
+	tempdir, err := ioutil.TempDir(filepath.Join(gh.getGhgHome(), "tmp"), "")
 	if err != nil {
 		err = errors.Wrap(err, "failed to create tempdir")
 		return
@@ -262,32 +262,6 @@ func (gh *ghg) pickupExecutable(src string) error {
 func exists(filename string) bool {
 	_, err := os.Stat(filename)
 	return err == nil
-}
-
-func copyExecutable(srcName string, destName string) error {
-	src, err := os.Open(srcName)
-	if err != nil {
-		return err
-	}
-	defer src.Close()
-
-	dest, err := os.Create(destName)
-	if err != nil {
-		return err
-	}
-	defer dest.Close()
-
-	_, err = io.Copy(dest, src)
-	if err != nil {
-		return err
-	}
-
-	fileInfo, err := os.Stat(srcName)
-	if err != nil {
-		return err
-	}
-
-	return os.Chmod(destName, fileInfo.Mode())
 }
 
 func lcs(a, b string) string {
