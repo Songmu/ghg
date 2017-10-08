@@ -29,17 +29,21 @@ func getOctCli(token string) *octokit.Client {
 }
 
 type ghg struct {
-	binDir  string
+	ghgHome string
 	target  string
 	client  *octokit.Client
 	upgrade bool
 }
 
-func (gh *ghg) getBinDir() string {
-	if gh.binDir != "" {
-		return gh.binDir
+func (gh *ghg) getGhgHome() string {
+	if gh.ghgHome != "" {
+		return gh.ghgHome
 	}
 	return "."
+}
+
+func (gh *ghg) getBinDir() string {
+	return filepath.Join(gh.getGhgHome(), "bin")
 }
 
 var releaseByTagURL = octokit.Hyperlink("repos/{owner}/{repo}/releases/tags/{tag}")
