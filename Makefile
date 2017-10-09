@@ -5,12 +5,10 @@ ifdef update
 endif
 
 deps:
-	go get ${u} -d -v ./...
+	go get ${u} github.com/golang/dep/cmd/dep
+	dep ensure
 
-test-deps:
-	go get ${u} -d -t -v ./...
-
-devel-deps: test-deps
+devel-deps: deps
 	go get ${u} github.com/golang/lint/golint
 	go get ${u} github.com/mattn/goveralls
 	go get ${u} github.com/motemen/gobump
@@ -18,7 +16,7 @@ devel-deps: test-deps
 	go get ${u} github.com/Songmu/ghch
 	go get ${u} github.com/tcnksm/ghr
 
-test: test-deps
+test: deps
 	go test
 
 lint: devel-deps
@@ -40,4 +38,4 @@ release: devel-deps
 	_tools/releng
 	_tools/upload_artifacts
 
-.PHONY: deps test-deps devel-deps test lint cover build crossbuild release
+.PHONY: deps devel-deps test lint cover build crossbuild release
