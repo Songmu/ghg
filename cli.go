@@ -9,7 +9,7 @@ import (
 
 	"github.com/jessevdk/go-flags"
 	"github.com/mitchellh/go-homedir"
-	"github.com/tcnksm/go-gitconfig"
+	gitconfig "github.com/tcnksm/go-gitconfig"
 )
 
 const (
@@ -17,8 +17,6 @@ const (
 	exitCodeParseFlagErr
 	exitCodeErr
 )
-
-const version = "0.1.0"
 
 type ghOpts struct {
 	Get getCommand `description:"get stuffs" command:"get" subcommands-optional:"true"`
