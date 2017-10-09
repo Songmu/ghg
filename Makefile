@@ -1,5 +1,5 @@
 CURRENT_REVISION = $(shell git rev-parse --short HEAD)
-BUILD_LDFLAGS = "-X main.revision=$(CURRENT_REVISION)"
+BUILD_LDFLAGS = "-X github.com/Songmu/ghg.revision=$(CURRENT_REVISION)"
 ifdef update
   u=-u
 endif

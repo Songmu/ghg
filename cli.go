@@ -88,7 +88,7 @@ func (b *binCommand) Execute(args []string) error {
 type verCommand struct{}
 
 func (b *verCommand) Execute(args []string) error {
-	fmt.Printf("ghg version: %s\n", version)
+	fmt.Printf("ghg version: %s (rev: %s)\n", version, revision)
 	return nil
 }
 
