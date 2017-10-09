@@ -32,14 +32,14 @@ type getCommand struct {
 }
 
 func (g *getCommand) Execute(args []string) error {
-	bin, err := ghgBin()
+	gHome, err := ghgHome()
 	if err != nil {
 		return err
 	}
 	ghcli := getOctCli(getToken())
 	for _, target := range args {
 		gh := &ghg{
-			binDir:  bin,
+			ghgHome: gHome,
 			target:  target,
 			client:  ghcli,
 			upgrade: g.Upgrade,
