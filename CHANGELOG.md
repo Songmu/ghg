@@ -1,5 +1,10 @@
 # Changelog
 
+## [v0.1.1](https://github.com/Songmu/ghg/compare/v0.1.0...v0.1.1) (2017-10-10)
+
+* Adjust releasing flow and introduce dep [#10](https://github.com/Songmu/ghg/pull/10) ([Songmu](https://github.com/Songmu))
+* Change working directory location [#9](https://github.com/Songmu/ghg/pull/9) ([Songmu](https://github.com/Songmu))
+
 ## [v0.1.0](https://github.com/Songmu/ghg/compare/v0.0.3...v0.1.0) (2017-07-18)
 
 * Support  naked binary without being compressed [#8](https://github.com/Songmu/ghg/pull/8) ([Songmu](https://github.com/Songmu))
