@@ -5,7 +5,7 @@
   branch = "master"
   name = "github.com/dsnet/compress"
   packages = [".","bzip2","bzip2/internal/sais","internal","internal/errors","internal/prefix"]
-  revision = "c4dbed65594871659ea7347a85e1b8dcd97b9990"
+  revision = "cc9eb1d7ad760af14e8f918698f745e80377af4f"
 
 [[projects]]
   name = "github.com/fhs/go-netrc"
@@ -53,7 +53,7 @@
   branch = "master"
   name = "github.com/nwaples/rardecode"
   packages = ["."]
-  revision = "f22b7ef81a0afac9ce1447d37e5ab8e99fbd2f73"
+  revision = "e06696f847aeda6f39a8f0b7cdff193b7690aef6"
 
 [[projects]]
   branch = "master"
