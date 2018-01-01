@@ -1,5 +1,10 @@
 # Changelog
 
+## [v0.1.2](https://github.com/Songmu/ghg/compare/v0.1.1...v0.1.2) (2018-01-01)
+
+* introduce goxz [#12](https://github.com/Songmu/ghg/pull/12) ([Songmu](https://github.com/Songmu))
+* Update deps [#11](https://github.com/Songmu/ghg/pull/11) ([Songmu](https://github.com/Songmu))
+
 ## [v0.1.1](https://github.com/Songmu/ghg/compare/v0.1.0...v0.1.1) (2017-10-10)
 
 * Adjust releasing flow and introduce dep [#10](https://github.com/Songmu/ghg/pull/10) ([Songmu](https://github.com/Songmu))
