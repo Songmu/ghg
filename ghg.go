@@ -108,6 +108,9 @@ func (gh *ghg) install(url string) error {
 	tmpdir := filepath.Dir(archivePath)
 	defer os.RemoveAll(tmpdir)
 
+	bin := gh.getBinDir()
+	os.MkdirAll(bin, 0755)
+
 	if !archiveReg.MatchString(url) {
 		_, repo, _, _ := getOwnerRepoAndTag(gh.target)
 		name := lcs(repo, filepath.Base(archivePath))
@@ -128,9 +131,6 @@ func (gh *ghg) install(url string) error {
 	if err != nil {
 		return errors.Wrap(err, "failed to extract")
 	}
-
-	bin := gh.getBinDir()
-	os.MkdirAll(bin, 0755)
 
 	err = gh.pickupExecutable(workDir)
 	if err != nil {
