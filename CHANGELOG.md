@@ -1,5 +1,9 @@
 # Changelog
 
+## [v0.1.3](https://github.com/Songmu/ghg/compare/v0.1.2...v0.1.3) (2018-06-24)
+
+* Fix rename error that occurs if the target is a naked binary [#13](https://github.com/Songmu/ghg/pull/13) ([yuuki](https://github.com/yuuki))
+
 ## [v0.1.2](https://github.com/Songmu/ghg/compare/v0.1.1...v0.1.2) (2018-01-01)
 
 * introduce goxz [#12](https://github.com/Songmu/ghg/pull/12) ([Songmu](https://github.com/Songmu))
