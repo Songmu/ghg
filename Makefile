@@ -1,3 +1,4 @@
+VERSION = $(shell gobump show -r)
 CURRENT_REVISION = $(shell git rev-parse --short HEAD)
 BUILD_LDFLAGS = "-X github.com/Songmu/ghg.revision=$(CURRENT_REVISION)"
 ifdef update
@@ -34,8 +35,12 @@ crossbuild: devel-deps
 	  -os=linux,darwin,windows,freebsd -arch=amd64 -d=./dist/v$(shell gobump show -r) \
 	  ./cmd/ghg
 
-release: devel-deps
+bump: devel-deps
 	_tools/releng
-	_tools/upload_artifacts
 
-.PHONY: deps devel-deps test lint cover build crossbuild release
+upload:
+	ghr v$(VERSION) dist/v$(VERSION)
+
+release: bump crossbuild upload
+
+.PHONY: deps devel-deps test lint cover build crossbuild build upload release
