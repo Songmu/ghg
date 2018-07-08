@@ -4,7 +4,14 @@
 [[projects]]
   branch = "master"
   name = "github.com/dsnet/compress"
-  packages = [".","bzip2","bzip2/internal/sais","internal","internal/errors","internal/prefix"]
+  packages = [
+    ".",
+    "bzip2",
+    "bzip2/internal/sais",
+    "internal",
+    "internal/errors",
+    "internal/prefix"
+  ]
   revision = "cc9eb1d7ad760af14e8f918698f745e80377af4f"
 
 [[projects]]
@@ -14,15 +21,26 @@
   version = "v1.0.0"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/golang/snappy"
+  packages = ["."]
+  revision = "2e65f85255dbc3072edf28d6b5b8efc472979f5a"
+
+[[projects]]
+  branch = "master"
   name = "github.com/jessevdk/go-flags"
   packages = ["."]
-  revision = "96dc06278ce32a0e9d957d590bb987c81ee66407"
-  version = "v1.3.0"
+  revision = "1c38ed7ad0cc3d9e66649ac398c30e45f395c4eb"
 
 [[projects]]
   branch = "master"
   name = "github.com/jingweno/go-sawyer"
-  packages = [".","hypermedia","mediaheader","mediatype"]
+  packages = [
+    ".",
+    "hypermedia",
+    "mediaheader",
+    "mediatype"
+  ]
   revision = "1999ae5763d678f3ce1112cf1fda7c7e9cf2aadf"
 
 [[projects]]
@@ -32,22 +50,22 @@
   version = "v1.0.0"
 
 [[projects]]
+  branch = "master"
   name = "github.com/mholt/archiver"
   packages = ["."]
-  revision = "cdc68dd1f170b8dfc1a0d2231b5bb0967ed67006"
-  version = "v2.0"
+  revision = "e4ef56d48eb029648b0e895bb0b6a393ef0829c3"
 
 [[projects]]
   branch = "master"
   name = "github.com/mitchellh/go-homedir"
   packages = ["."]
-  revision = "b8bc1bf767474819792c23f32d8286a45736f1c6"
+  revision = "3864e76763d94a6df2f9960b16a20a33da9f9a66"
 
 [[projects]]
   branch = "master"
   name = "github.com/mitchellh/ioprogress"
   packages = ["."]
-  revision = "8163955264568045f462ae7e2d6d07b2001fc997"
+  revision = "6a23b12fa88ea53e63d9b49f148fe6b29c30af6d"
 
 [[projects]]
   branch = "master"
@@ -62,26 +80,40 @@
   revision = "812e91dfbd64051c1ec72c48feda0278727e8a4e"
 
 [[projects]]
-  name = "github.com/pkg/errors"
-  packages = ["."]
-  revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
-  version = "v0.8.0"
+  name = "github.com/pierrec/lz4"
+  packages = [
+    ".",
+    "internal/xxh32"
+  ]
+  revision = "1958fd8fff7f115e79725b1288e0b878b3e06b00"
+  version = "v2.0.3"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/pkg/errors"
+  packages = ["."]
+  revision = "816c9085562cd7ee03e7f8188a1cfd942858cded"
+
+[[projects]]
+  branch = "master"
   name = "github.com/tcnksm/go-gitconfig"
   packages = ["."]
-  revision = "d154598bacbf4501c095a309753c5d4af66caa81"
-  version = "v0.1.2"
+  revision = "6411ba19847f20afe47f603328d97aaeca6def6f"
 
 [[projects]]
   name = "github.com/ulikunitz/xz"
-  packages = [".","internal/hash","internal/xlog","lzma"]
+  packages = [
+    ".",
+    "internal/hash",
+    "internal/xlog",
+    "lzma"
+  ]
   revision = "0c6b41e72360850ca4f98dc341fd999726ea007f"
   version = "v0.5.4"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "30c83e47ed1a5ec9c0c0e5ad9197cde7a9dd8b55e606eedb46d4ba46f659391c"
+  inputs-digest = "e6b399fe29d0103050504335f9143bae4a2cbbba60a2c3a39e3ba0ab143e8cd1"
   solver-name = "gps-cdcl"
   solver-version = 1
