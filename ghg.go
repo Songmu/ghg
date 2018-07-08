@@ -50,6 +50,7 @@ var releaseByTagURL = octokit.Hyperlink("repos/{owner}/{repo}/releases/tags/{tag
 var (
 	archiveReg = regexp.MustCompile(`\.(?:zip|tgz|tar\.gz)$`)
 	anyExtReg  = regexp.MustCompile(`\.[a-zA-Z0-9]+$`)
+	isWindows  = runtime.GOOS == "windows"
 )
 
 func (gh *ghg) get() error {
@@ -118,7 +119,7 @@ func (gh *ghg) install(url string) error {
 		if name == "" {
 			name = repo
 		}
-		if runtime.GOOS == "windows" {
+		if isWindows {
 			name += ".exe"
 		}
 		return gh.place(archivePath, filepath.Join(gh.getBinDir(), name))
@@ -240,7 +241,7 @@ func getOwnerRepoAndTag(target string) (owner, repo, tag string, err error) {
 
 var executableReg = func() *regexp.Regexp {
 	s := `^[a-z][-_a-zA-Z0-9]+`
-	if runtime.GOOS == "windows" {
+	if isWindows {
 		s += `\.exe`
 	}
 	return regexp.MustCompile(s + `$`)
@@ -252,8 +253,8 @@ func (gh *ghg) pickupExecutable(src string) error {
 		if err != nil || info.IsDir() {
 			return err
 		}
-		if name := info.Name(); (info.Mode()&0111) != 0 && executableReg.MatchString(name) {
-			return gh.place(path, filepath.Join(bindir, name))
+		if isExecutable(info) {
+			return gh.place(path, filepath.Join(bindir, info.Name()))
 		}
 		return nil
 	})
@@ -262,6 +263,13 @@ func (gh *ghg) pickupExecutable(src string) error {
 func exists(filename string) bool {
 	_, err := os.Stat(filename)
 	return err == nil
+}
+
+func isExecutable(info os.FileInfo) bool {
+	if isWindows {
+		return executableReg.MatchString(info.Name())
+	}
+	return (info.Mode()&0111) != 0 && executableReg.MatchString(info.Name())
 }
 
 func lcs(a, b string) string {
