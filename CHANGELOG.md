@@ -1,5 +1,10 @@
 # Changelog
 
+## [v0.1.4](https://github.com/Songmu/ghg/compare/v0.1.3...v0.1.4) (2018-07-08)
+
+* update deps [#15](https://github.com/Songmu/ghg/pull/15) ([Songmu](https://github.com/Songmu))
+* Detect executables in windows validly [#14](https://github.com/Songmu/ghg/pull/14) ([delphinus](https://github.com/delphinus))
+
 ## [v0.1.3](https://github.com/Songmu/ghg/compare/v0.1.2...v0.1.3) (2018-06-24)
 
 * Fix rename error that occurs if the target is a naked binary [#13](https://github.com/Songmu/ghg/pull/13) ([yuuki](https://github.com/yuuki))
