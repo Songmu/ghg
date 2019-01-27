@@ -6,29 +6,28 @@ ifdef update
 endif
 
 deps:
-	go get ${u} github.com/golang/dep/cmd/dep
-	dep ensure
+	env GO111MODULE=on go mod download
 
 devel-deps: deps
-	go get ${u} golang.org/x/lint/golint
-	go get ${u} github.com/mattn/goveralls
-	go get ${u} github.com/motemen/gobump/cmd/gobump
-	go get ${u} github.com/Songmu/goxz/cmd/goxz
-	go get ${u} github.com/Songmu/ghch/cmd/ghch
-	go get ${u} github.com/tcnksm/ghr
+	env GO111MODULE=on go get ${u} golang.org/x/lint/golint
+	env GO111MODULE=on go get ${u} github.com/mattn/goveralls
+	env GO111MODULE=on go get ${u} github.com/motemen/gobump/cmd/gobump
+	env GO111MODULE=on go get ${u} github.com/Songmu/goxz/cmd/goxz
+	env GO111MODULE=on go get ${u} github.com/Songmu/ghch/cmd/ghch
+	env GO111MODULE=on go get ${u} github.com/tcnksm/ghr
 
 test: deps
-	go test
+	env GO111MODULE=on go test
 
 lint: devel-deps
-	go vet
+	env GO111MODULE=on go vet
 	golint -set_exit_status
 
 cover: devel-deps
 	goveralls
 
 build: deps
-	go build -ldflags=$(BUILD_LDFLAGS) ./cmd/ghg
+	env GO111MODULE=on go build -ldflags=$(BUILD_LDFLAGS) ./cmd/ghg
 
 crossbuild: devel-deps
 	goxz -pv=v$(shell gobump show -r) -build-ldflags=$(BUILD_LDFLAGS) \
