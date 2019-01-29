@@ -5,29 +5,32 @@ ifdef update
   u=-u
 endif
 
+GO ?= GO111MODULE=on go
+
 deps:
 	env GO111MODULE=on go mod download
 
 devel-deps: deps
-	env GO111MODULE=on go get ${u} golang.org/x/lint/golint
-	env GO111MODULE=on go get ${u} github.com/mattn/goveralls
-	env GO111MODULE=on go get ${u} github.com/motemen/gobump/cmd/gobump
-	env GO111MODULE=on go get ${u} github.com/Songmu/goxz/cmd/goxz
-	env GO111MODULE=on go get ${u} github.com/Songmu/ghch/cmd/ghch
-	env GO111MODULE=on go get ${u} github.com/tcnksm/ghr
+	$(GO) get ${u} \
+	  golang.org/x/lint/golint             \
+	  github.com/mattn/goveralls           \
+	  github.com/motemen/gobump/cmd/gobump \
+	  github.com/Songmu/goxz/cmd/goxz      \
+	  github.com/Songmu/ghch/cmd/ghch      \
+	  github.com/tcnksm/ghr
 
 test: deps
-	env GO111MODULE=on go test
+	$(GO) test
 
 lint: devel-deps
-	env GO111MODULE=on go vet
+	$(GO) vet
 	golint -set_exit_status
 
 cover: devel-deps
 	goveralls
 
 build: deps
-	env GO111MODULE=on go build -ldflags=$(BUILD_LDFLAGS) ./cmd/ghg
+	$(GO) build -ldflags=$(BUILD_LDFLAGS) ./cmd/ghg
 
 crossbuild: devel-deps
 	goxz -pv=v$(shell gobump show -r) -build-ldflags=$(BUILD_LDFLAGS) \
