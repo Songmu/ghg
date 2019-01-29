@@ -1,5 +1,9 @@
 # Changelog
 
+## [v0.2.0](https://github.com/Songmu/ghg/compare/v0.1.4...v0.2.0) (2019-01-29)
+
+* apply go modules and update mholt/archiver unarchive method [#17](https://github.com/Songmu/ghg/pull/17) ([zrma](https://github.com/zrma))
+
 ## [v0.1.4](https://github.com/Songmu/ghg/compare/v0.1.3...v0.1.4) (2018-07-08)
 
 * update deps [#15](https://github.com/Songmu/ghg/pull/15) ([Songmu](https://github.com/Songmu))
