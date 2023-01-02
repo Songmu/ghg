@@ -1,48 +1,43 @@
-VERSION = $(shell gobump show -r)
+VERSION = $(shell godzil show-version)
 CURRENT_REVISION = $(shell git rev-parse --short HEAD)
-BUILD_LDFLAGS = "-X github.com/Songmu/ghg.revision=$(CURRENT_REVISION)"
+BUILD_LDFLAGS = "-s -w -X github.com/Songmu/ghg.revision=$(CURRENT_REVISION)"
 ifdef update
   u=-u
 endif
 
-GO ?= GO111MODULE=on go
-
+.PHONY: deps
 deps:
-	env GO111MODULE=on go mod download
+	go get ${u} -d
+	go mod tidy
 
-devel-deps: deps
-	$(GO) get ${u} \
-	  golang.org/x/lint/golint             \
-	  github.com/mattn/goveralls           \
-	  github.com/motemen/gobump/cmd/gobump \
-	  github.com/Songmu/goxz/cmd/goxz      \
-	  github.com/Songmu/ghch/cmd/ghch      \
-	  github.com/tcnksm/ghr
+.PHONY: devel-deps
+devel-deps:
+	go install github.com/tcnksm/ghr@latest
+	go install github.com/Songmu/godzil/cmd/godzil@latest
 
-test: deps
-	$(GO) test
+.PHONY: test
+test:
+	go test
 
-lint: devel-deps
-	$(GO) vet
-	golint -set_exit_status
-
-cover: devel-deps
-	goveralls
-
+.PHONY: build
 build: deps
-	$(GO) build -ldflags=$(BUILD_LDFLAGS) ./cmd/ghg
+	go build -ldflags=$(BUILD_LDFLAGS) ./cmd/ghg
 
-crossbuild: devel-deps
-	env GO111MODULE=on goxz -pv=v$(shell gobump show -r) -build-ldflags=$(BUILD_LDFLAGS) \
-	  -os=linux,darwin,windows,freebsd -arch=amd64 -d=./dist/v$(shell gobump show -r) \
-	  ./cmd/ghg
+.PHONY: install
+install:
+	go install -ldflags=$(BUILD_LDFLAGS) ./cmd/ghg
 
-bump: devel-deps
-	_tools/releng
+CREDITS: go.sum devel-deps
+	godzil credits -w
 
+DIST_DIR = dist
+.PHONY: crossbuild
+crossbuild: go.sum devel-deps
+	rm -rf $(DIST_DIR)
+	godzil crossbuild -pv=v$(VERSION) -build-ldflags=$(BUILD_LDFLAGS) \
+      -os=linux,darwin,windows,freebsd -d=$(DIST_DIR) ./cmd/*
+	cd $(DIST_DIR) && shasum -a 256 $$(find * -type f -maxdepth 0) > SHA256SUMS
+
+.PHONY: upload
 upload:
-	ghr v$(VERSION) dist/v$(VERSION)
-
-release: bump crossbuild upload
-
-.PHONY: deps devel-deps test lint cover build crossbuild build upload release
+	ghr v$(VERSION) $(DIST_DIR)
