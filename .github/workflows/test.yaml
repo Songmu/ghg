@@ -12,7 +12,6 @@ jobs:
         os:
         - ubuntu-latest
         - macOS-latest
-        - windows-latest
     steps:
     - name: checkout
       uses: actions/checkout@v3
