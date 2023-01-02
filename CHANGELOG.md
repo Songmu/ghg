@@ -1,5 +1,13 @@
 # Changelog
 
+## [v0.3.0](https://github.com/Songmu/ghg/compare/v0.2.0...v0.3.0) - 2023-01-02
+- update release related stuffs by @Songmu in https://github.com/Songmu/ghg/pull/18
+- update deps by @Songmu in https://github.com/Songmu/ghg/pull/20
+- use os.UserHomeDir instead of go-homedir by @Songmu in https://github.com/Songmu/ghg/pull/21
+- migrate to go-github from octokit by @Songmu in https://github.com/Songmu/ghg/pull/22
+- quess download url before requesting assets list by @Songmu in https://github.com/Songmu/ghg/pull/23
+- detect latest tag without using API by @Songmu in https://github.com/Songmu/ghg/pull/24
+
 ## [v0.2.0](https://github.com/Songmu/ghg/compare/v0.1.4...v0.2.0) (2019-01-29)
 
 * apply go modules and update mholt/archiver unarchive method [#17](https://github.com/Songmu/ghg/pull/17) ([zrma](https://github.com/zrma))
