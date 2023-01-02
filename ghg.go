@@ -2,6 +2,7 @@ package ghg
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -62,11 +63,35 @@ func (gh *ghg) get(ctx context.Context) error {
 	log.Printf("fetch the GitHub release for %s\n", gh.target)
 
 	if tag == "" {
-		rel, _, err := gh.client.Repositories.GetLatestRelease(ctx, owner, repo)
+		url := fmt.Sprintf("https://github.com/%s/%s/releases/latest", owner, repo)
+		httpCli := gh.client.Client()
+		req, err := gh.client.NewRequest("GET", url, nil)
 		if err != nil {
-			return errors.Wrap(err, "failed to get latest tag")
+			return err
 		}
-		tag = rel.GetTagName()
+		req.Header.Set("Accept", "application/json")
+		req = req.WithContext(ctx)
+		resp, err := httpCli.Do(req)
+		if err != nil {
+			return err
+		}
+		if resp.StatusCode == http.StatusOK {
+			var latestResp struct {
+				TagName string `json:"tag_name"`
+			}
+			err := json.NewDecoder(resp.Body).Decode(&latestResp)
+			if err != nil {
+				return err
+			}
+			tag = latestResp.TagName
+		} else {
+			rel, _, err := gh.client.Repositories.GetLatestRelease(ctx, owner, repo)
+			if err != nil {
+				return errors.Wrap(err, "failed to get latest tag")
+			}
+			tag = rel.GetTagName()
+		}
+		resp.Body.Close()
 	}
 
 	goarch := runtime.GOARCH
