@@ -1,12 +1,12 @@
 package ghg
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
-	"net/url"
 	"os"
 	"path"
 	"path/filepath"
@@ -14,24 +14,26 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/google/go-github/v48/github"
 	"github.com/mholt/archiver"
 	"github.com/mitchellh/ioprogress"
-	"github.com/octokit/go-octokit/octokit"
 	"github.com/pkg/errors"
+	"golang.org/x/oauth2"
 )
 
-func getOctCli(token string) *octokit.Client {
-	var auth octokit.AuthMethod
+func getOctCli(ctx context.Context, token string) *github.Client {
+	var oauthClient *http.Client
 	if token != "" {
-		auth = octokit.TokenAuth{AccessToken: token}
+		ts := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token})
+		oauthClient = oauth2.NewClient(ctx, ts)
 	}
-	return octokit.NewClient(auth)
+	return github.NewClient(oauthClient)
 }
 
 type ghg struct {
 	ghgHome string
 	target  string
-	client  *octokit.Client
+	client  *github.Client
 	upgrade bool
 }
 
@@ -46,7 +48,6 @@ func (gh *ghg) getBinDir() string {
 	return filepath.Join(gh.getGhgHome(), "bin")
 }
 
-var releaseByTagURL = octokit.Hyperlink("repos/{owner}/{repo}/releases/tags/{tag}")
 var (
 	archiveReg = regexp.MustCompile(`\.(?:zip|tgz|tar\.gz)$`)
 	anyExtReg  = regexp.MustCompile(`\.[a-zA-Z0-9]+$`)
@@ -59,28 +60,28 @@ func (gh *ghg) get() error {
 		return errors.Wrap(err, "failed to resolve target")
 	}
 	log.Printf("fetch the GitHub release for %s\n", gh.target)
-	var url *url.URL
+
+	ctx := context.Background()
 	if tag == "" {
-		url, err = octokit.ReleasesLatestURL.Expand(octokit.M{"owner": owner, "repo": repo})
-	} else {
-		url, err = releaseByTagURL.Expand(octokit.M{"owner": owner, "repo": repo, "tag": tag})
+		rel, _, err := gh.client.Repositories.GetLatestRelease(ctx, owner, repo)
+		if err != nil {
+			return errors.Wrap(err, "failed to get latest tag")
+		}
+		tag = rel.GetTagName()
 	}
+
+	release, _, err := gh.client.Repositories.GetReleaseByTag(ctx, owner, repo, tag)
 	if err != nil {
-		return errors.Wrap(err, "failed to build GitHub URL")
+		return errors.Wrap(err, "failed to fetch a release")
 	}
-	release, r := gh.client.Releases(url).Latest()
-	if r.HasError() {
-		return errors.Wrap(r.Err, "failed to fetch a release")
-	}
-	tag = release.TagName
 	goarch := runtime.GOARCH
 	goos := runtime.GOOS
 	var urls []string
 	for _, asset := range release.Assets {
-		name := asset.Name
+		name := asset.GetName()
 		if strings.Contains(name, goarch) && strings.Contains(name, goos) &&
 			(archiveReg.MatchString(name) || !anyExtReg.MatchString(name)) {
-			urls = append(urls, fmt.Sprintf("https://github.com/%s/%s/releases/download/%s/%s", owner, repo, tag, name))
+			urls = append(urls, asset.GetBrowserDownloadURL())
 		}
 	}
 	if len(urls) < 1 {
