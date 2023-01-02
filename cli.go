@@ -2,6 +2,8 @@ package ghg
 
 import (
 	"context"
+	"errors"
+	"flag"
 	"fmt"
 	"io"
 	"log"
@@ -11,6 +13,40 @@ import (
 	"github.com/Songmu/gitconfig"
 	"github.com/jessevdk/go-flags"
 )
+
+func Run(ctx context.Context, argv []string, outStream, errStream io.Writer) error {
+	log.SetOutput(errStream)
+	log.SetPrefix("[ghg] ")
+	fs := flag.NewFlagSet(
+		fmt.Sprintf("ghg (v%s rev:%s)", version, revision), flag.ContinueOnError)
+
+	ver := fs.Bool("version", false, "display version")
+	if err := fs.Parse(argv); err != nil {
+		return err
+	}
+	if *ver {
+		return printVersion(outStream)
+	}
+
+	argv = fs.Args()
+	if len(argv) < 1 {
+		return errors.New("no subcommand specified")
+	}
+	rnr, ok := dispatch[argv[0]]
+	if !ok {
+		return fmt.Errorf("unknown subcommand: %s", argv[0])
+	}
+	return rnr.run(ctx, argv[1:], outStream, errStream)
+}
+
+var dispatch = map[string]runner{
+	"bin": &binCmd{},
+	"get": &getCmd{},
+}
+
+type runner interface {
+	run(context.Context, []string, io.Writer, io.Writer) error
+}
 
 const (
 	exitCodeOK = iota
@@ -123,5 +159,10 @@ func getToken() string {
 func parseArgs(args []string) error {
 	opts := &ghOpts{}
 	_, err := flags.ParseArgs(opts, args)
+	return err
+}
+
+func printVersion(out io.Writer) error {
+	_, err := fmt.Fprintf(out, "godzil v%s (rev:%s)\n", version, revision)
 	return err
 }

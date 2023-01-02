@@ -3,13 +3,15 @@ package ghg
 import (
 	"context"
 	"flag"
+	"io"
 	"log"
 )
 
 type getCmd struct {
 }
 
-func (g *getCmd) Run(ctx context.Context, args []string) error {
+func (g *getCmd) run(ctx context.Context, args []string,
+	outStream, errStream io.Writer) error {
 	gHome, err := ghgHome()
 	if err != nil {
 		return err

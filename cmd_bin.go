@@ -3,11 +3,13 @@ package ghg
 import (
 	"context"
 	"fmt"
+	"io"
 )
 
 type binCmd struct{}
 
-func (b *binCommand) Run(ctx context.Context, args []string) error {
+func (b *binCmd) run(ctx context.Context, args []string,
+	outStream, errStream io.Writer) error {
 	bin, err := ghgBin()
 	if err != nil {
 		return err
