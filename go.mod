@@ -5,7 +5,6 @@ go 1.19
 require (
 	github.com/jessevdk/go-flags v1.5.0
 	github.com/mholt/archiver v3.1.1+incompatible
-	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/ioprogress v0.0.0-20180201004757-6a23b12fa88e
 	github.com/octokit/go-octokit v0.4.1-0.20160312003706-812e91dfbd64
 	github.com/pkg/errors v0.9.1
