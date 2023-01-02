@@ -54,14 +54,13 @@ var (
 	isWindows  = runtime.GOOS == "windows"
 )
 
-func (gh *ghg) get() error {
+func (gh *ghg) get(ctx context.Context) error {
 	owner, repo, tag, err := getOwnerRepoAndTag(gh.target)
 	if err != nil {
 		return errors.Wrap(err, "failed to resolve target")
 	}
 	log.Printf("fetch the GitHub release for %s\n", gh.target)
 
-	ctx := context.Background()
 	if tag == "" {
 		rel, _, err := gh.client.Repositories.GetLatestRelease(ctx, owner, repo)
 		if err != nil {
@@ -70,18 +69,43 @@ func (gh *ghg) get() error {
 		tag = rel.GetTagName()
 	}
 
-	release, _, err := gh.client.Repositories.GetReleaseByTag(ctx, owner, repo, tag)
-	if err != nil {
-		return errors.Wrap(err, "failed to fetch a release")
-	}
 	goarch := runtime.GOARCH
 	goos := runtime.GOOS
+	format := "tar.gz"
+	if goos == "windows" || goos == "darwin" {
+		format = "zip"
+	}
+	url := fmt.Sprintf(
+		"https://github.com/%[1]s/%[2]s/releases/download/%[3]s/%[2]s_%[3]s_%[4]s_%[5]s.%[6]s",
+		owner, repo, tag, goos, goarch, format)
+	req, err := gh.client.NewRequest("HEAD", url, nil)
+	if err != nil {
+		return err
+	}
+	httpCli := gh.client.Client()
+	httpCli.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+		return http.ErrUseLastResponse
+	}
+	req = req.WithContext(ctx)
+	resp, err := httpCli.Do(req)
+	if err != nil {
+		return err
+	}
+	resp.Body.Close()
 	var urls []string
-	for _, asset := range release.Assets {
-		name := asset.GetName()
-		if strings.Contains(name, goarch) && strings.Contains(name, goos) &&
-			(archiveReg.MatchString(name) || !anyExtReg.MatchString(name)) {
-			urls = append(urls, asset.GetBrowserDownloadURL())
+	if resp.StatusCode >= 200 && resp.StatusCode < 400 {
+		urls = append(urls, url)
+	} else {
+		release, _, err := gh.client.Repositories.GetReleaseByTag(ctx, owner, repo, tag)
+		if err != nil {
+			return errors.Wrap(err, "failed to fetch a release")
+		}
+		for _, asset := range release.Assets {
+			name := asset.GetName()
+			if strings.Contains(name, goarch) && strings.Contains(name, goos) &&
+				(archiveReg.MatchString(name) || !anyExtReg.MatchString(name)) {
+				urls = append(urls, asset.GetBrowserDownloadURL())
+			}
 		}
 	}
 	if len(urls) < 1 {
