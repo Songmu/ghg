@@ -3,12 +3,13 @@ ghg
 
 [![Build Status](https://travis-ci.org/Songmu/ghg.png?branch=main)][travis]
 [![MIT License](http://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)][license]
-[![GoDoc](https://godoc.org/github.com/Songmu/ghg?status.svg)][godoc]
+[![Coverage Status](https://codecov.io/gh/Songmu/ghg/branch/main/graph/badge.svg)][codecov]
+[![PkgGoDev](https://pkg.go.dev/badge/github.com/Songmu/ghg)][PkgGoDev]
 
 [travis]: https://travis-ci.org/Songmu/ghg
-[coveralls]: https://coveralls.io/r/Songmu/ghg?branch=main
+[codecov]: https://codecov.io/gh/Songmu/ghg
 [license]: https://github.com/Songmu/ghg/blob/main/LICENSE
-[godoc]: https://godoc.org/github.com/Songmu/ghg
+[PkgGoDev]: https://pkg.go.dev/github.com/Songmu/ghg
 
 ## Description
 
@@ -16,7 +17,7 @@ Get the executable from github releases
 
 ## Installation
 
-    % go get github.com/Songmu/ghg/cmd/ghg
+    % go install github.com/Songmu/ghg/cmd/ghg@latest
 
 Built binaries are available on gihub releases.
 <https://github.com/Songmu/ghg/releases>
