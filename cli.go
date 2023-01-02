@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 
 	"github.com/jessevdk/go-flags"
-	"github.com/mitchellh/go-homedir"
 	gitconfig "github.com/tcnksm/go-gitconfig"
 )
 
@@ -59,7 +58,7 @@ func ghgHome() (string, error) {
 	if ghome != "" {
 		return ghome, nil
 	}
-	home, err := homedir.Dir()
+	home, err := os.UserHomeDir()
 	if err != nil {
 		return "", err
 	}
