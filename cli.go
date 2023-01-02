@@ -8,8 +8,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/Songmu/gitconfig"
 	"github.com/jessevdk/go-flags"
-	gitconfig "github.com/tcnksm/go-gitconfig"
 )
 
 const (
@@ -116,11 +116,7 @@ func (cli *CLI) Run(argv []string) int {
 }
 
 func getToken() string {
-	token := os.Getenv("GITHUB_TOKEN")
-	if token != "" {
-		return token
-	}
-	token, _ = gitconfig.GithubToken()
+	token, _ := gitconfig.GitHubToken("")
 	return token
 }
 
