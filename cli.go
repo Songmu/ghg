@@ -34,7 +34,8 @@ func (g *getCommand) Execute(args []string) error {
 	if err != nil {
 		return err
 	}
-	ghcli := getOctCli(context.TODO(), getToken())
+	ctx := context.TODO()
+	ghcli := getOctCli(ctx, getToken())
 	for _, target := range args {
 		gh := &ghg{
 			ghgHome: gHome,
@@ -42,7 +43,7 @@ func (g *getCommand) Execute(args []string) error {
 			client:  ghcli,
 			upgrade: g.Upgrade,
 		}
-		err := gh.get()
+		err := gh.get(ctx)
 		if err != nil {
 			return err
 		}
