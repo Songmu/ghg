@@ -1,5 +1,7 @@
 module github.com/Songmu/ghg
 
+go 1.19
+
 require (
 	github.com/Songmu/ghch v0.4.0 // indirect
 	github.com/Songmu/retry v0.1.0 // indirect

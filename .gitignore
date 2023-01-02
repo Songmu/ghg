@@ -1,6 +1,5 @@
 .*
 !.gitignore
-!.travis.yml
-!.goxc.json
+!.github
 dist/
 vendor/
