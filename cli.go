@@ -1,6 +1,7 @@
 package ghg
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"log"
@@ -33,7 +34,7 @@ func (g *getCommand) Execute(args []string) error {
 	if err != nil {
 		return err
 	}
-	ghcli := getOctCli(getToken())
+	ghcli := getOctCli(context.TODO(), getToken())
 	for _, target := range args {
 		gh := &ghg{
 			ghgHome: gHome,
