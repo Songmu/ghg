@@ -1,12 +1,12 @@
 ghg
 =======
 
-[![Build Status](https://travis-ci.org/Songmu/ghg.png?branch=main)][travis]
+[![Test Status](https://github.com/Songmu/ghg/workflows/test/badge.svg?branch=main)][actions]
 [![MIT License](http://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)][license]
 [![Coverage Status](https://codecov.io/gh/Songmu/ghg/branch/main/graph/badge.svg)][codecov]
 [![PkgGoDev](https://pkg.go.dev/badge/github.com/Songmu/ghg)][PkgGoDev]
 
-[travis]: https://travis-ci.org/Songmu/ghg
+[actions]: https://github.com/Songmu/ghg/actions?workflow=test
 [codecov]: https://codecov.io/gh/Songmu/ghg
 [license]: https://github.com/Songmu/ghg/blob/main/LICENSE
 [PkgGoDev]: https://pkg.go.dev/github.com/Songmu/ghg
