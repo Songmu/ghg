@@ -1,7 +1,7 @@
 package ghg
 
 import (
-	"io/ioutil"
+	"io"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -11,7 +11,7 @@ import (
 var tempdir string
 
 func TestMain(m *testing.M) {
-	tempd, err := ioutil.TempDir("", "ghgtest-")
+	tempd, err := os.MkdirTemp("", "ghgtest-")
 	if err != nil {
 		panic("fialed to create tempdir in test")
 	}
@@ -45,8 +45,8 @@ var tests = []struct {
 func TestGet(t *testing.T) {
 	for _, tt := range tests {
 		exitCode := (&CLI{
-			ErrStream: ioutil.Discard,
-			OutStream: ioutil.Discard,
+			ErrStream: io.Discard,
+			OutStream: io.Discard,
 		}).Run([]string{
 			"get",
 			tt.input,
