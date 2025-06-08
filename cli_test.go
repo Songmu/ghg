@@ -27,10 +27,11 @@ var tests = []struct {
 	input    string
 	out      string
 	exitCode int
+	os       string
 }{
 	{
 		name:     "simple",
-		input:    "Songmu/ghg@v0.0.1",
+		input:    "Songmu/ghg@v0.3.0",
 		out:      "ghg",
 		exitCode: 0,
 	},
@@ -39,11 +40,16 @@ var tests = []struct {
 		input:    "bcicen/ctop@v0.4.1",
 		out:      "ctop",
 		exitCode: 0,
+		os:       "linux",
 	},
 }
 
 func TestGet(t *testing.T) {
 	for _, tt := range tests {
+		if tt.os != "" && runtime.GOOS != tt.os {
+			t.Logf("skip %s on %s", tt.name, runtime.GOOS)
+			continue
+		}
 		exitCode := (&CLI{
 			ErrStream: io.Discard,
 			OutStream: io.Discard,
