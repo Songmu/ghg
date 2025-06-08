@@ -1,5 +1,8 @@
 # Changelog
 
+## [v0.3.2](https://github.com/Songmu/ghg/compare/v0.3.1...v0.3.2) - 2025-06-08
+- don't update CREDITS in release process by @Songmu in https://github.com/Songmu/ghg/pull/31
+
 ## [v0.3.1](https://github.com/Songmu/ghg/compare/v0.3.0...v0.3.1) - 2025-06-08
 - introduce Songmu/gitconfig by @Songmu in https://github.com/Songmu/ghg/pull/26
 - replace ioutil by @yulog in https://github.com/Songmu/ghg/pull/28
