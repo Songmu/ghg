@@ -1,5 +1,10 @@
 # Changelog
 
+## [v0.3.1](https://github.com/Songmu/ghg/compare/v0.3.0...v0.3.1) - 2025-06-08
+- introduce Songmu/gitconfig by @Songmu in https://github.com/Songmu/ghg/pull/26
+- replace ioutil by @yulog in https://github.com/Songmu/ghg/pull/28
+- update deps by @Songmu in https://github.com/Songmu/ghg/pull/29
+
 ## [v0.3.0](https://github.com/Songmu/ghg/compare/v0.2.0...v0.3.0) - 2023-01-02
 - update release related stuffs by @Songmu in https://github.com/Songmu/ghg/pull/18
 - update deps by @Songmu in https://github.com/Songmu/ghg/pull/20
