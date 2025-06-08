@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -220,7 +219,7 @@ func (gh *ghg) download(url string) (fpath string, err error) {
 		return
 	}
 	archiveBase := path.Base(url)
-	tempdir, err := ioutil.TempDir(filepath.Join(gh.getGhgHome(), "tmp"), "")
+	tempdir, err := os.MkdirTemp(filepath.Join(gh.getGhgHome(), "tmp"), "")
 	if err != nil {
 		err = errors.Wrap(err, "failed to create tempdir")
 		return
