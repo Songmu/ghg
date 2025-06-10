@@ -1,5 +1,7 @@
 # Changelog
 
+## [v0.3.3](https://github.com/Songmu/ghg/compare/v0.3.2...v0.3.3) - 2025-06-10
+
 ## [v0.3.2](https://github.com/Songmu/ghg/compare/v0.3.1...v0.3.2) - 2025-06-08
 - don't update CREDITS in release process by @Songmu in https://github.com/Songmu/ghg/pull/31
 
