@@ -32,7 +32,7 @@ CREDITS: go.sum devel-deps
 
 DIST_DIR = dist
 .PHONY: crossbuild
-crossbuild:
+crossbuild: devel-deps
 	rm -rf $(DIST_DIR)
 	godzil crossbuild -pv=v$(VERSION) -build-ldflags=$(BUILD_LDFLAGS) \
       -os=linux,darwin,windows,freebsd -d=$(DIST_DIR) ./cmd/*
