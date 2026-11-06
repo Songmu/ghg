@@ -1,5 +1,9 @@
 # Changelog
 
+## [v0.3.3](https://github.com/Songmu/ghg/compare/v0.3.2...v0.3.3) - 2026-11-06
+
+- Modernize dependencies and automated maintenance workflows by @Songmu in https://github.com/Songmu/ghg/pull/33
+
 ## [v0.3.2](https://github.com/Songmu/ghg/compare/v0.3.1...v0.3.2) - 2025-06-08
 - don't update CREDITS in release process by @Songmu in https://github.com/Songmu/ghg/pull/31
 
