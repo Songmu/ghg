@@ -2,10 +2,18 @@ name: test
 on:
   push:
     branches:
-    - "**"
+    - main
+  pull_request: {}
+permissions:
+  contents: read
+  pull-requests: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   test:
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
@@ -14,14 +22,16 @@ jobs:
         - macOS-latest
     steps:
     - name: checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v7.0.1
+      with:
+        persist-credentials: false
     - name: setup go
-      uses: actions/setup-go@v3
+      uses: actions/setup-go@v7.0.0
       with:
         go-version-file: go.mod
     - name: test
-      run: go test -coverprofile coverage.out -covermode atomic ./...
+      run: go test -race -coverprofile coverage.out -covermode atomic ./...
       env:
         GITHUB_TOKEN: ${{ secrets.github_token }}
     - name: Send coverage
-      uses: codecov/codecov-action@v1
+      uses: codecov/codecov-action@v7.1.1

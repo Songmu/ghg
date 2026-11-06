@@ -14,20 +14,20 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/google/go-github/v48/github"
-	"github.com/mholt/archiver"
+	"github.com/google/go-github/v93/github"
+	"github.com/mholt/archiver/v3"
 	"github.com/mitchellh/ioprogress"
 	"github.com/pkg/errors"
 	"golang.org/x/oauth2"
 )
 
-func getOctCli(ctx context.Context, token string) *github.Client {
-	var oauthClient *http.Client
+func getOctCli(ctx context.Context, token string) (*github.Client, error) {
+	var opts []github.ClientOptionsFunc
 	if token != "" {
 		ts := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token})
-		oauthClient = oauth2.NewClient(ctx, ts)
+		opts = append(opts, github.WithHTTPClient(oauth2.NewClient(ctx, ts)))
 	}
-	return github.NewClient(oauthClient)
+	return github.NewClient(opts...)
 }
 
 type ghg struct {
@@ -64,12 +64,11 @@ func (gh *ghg) get(ctx context.Context) error {
 	if tag == "" {
 		url := fmt.Sprintf("https://github.com/%s/%s/releases/latest", owner, repo)
 		httpCli := gh.client.Client()
-		req, err := gh.client.NewRequest("GET", url, nil)
+		req, err := gh.client.NewRequest(ctx, "GET", url, nil)
 		if err != nil {
 			return err
 		}
 		req.Header.Set("Accept", "application/json")
-		req = req.WithContext(ctx)
 		resp, err := httpCli.Do(req)
 		if err != nil {
 			return err
@@ -102,7 +101,7 @@ func (gh *ghg) get(ctx context.Context) error {
 	url := fmt.Sprintf(
 		"https://github.com/%[1]s/%[2]s/releases/download/%[3]s/%[2]s_%[3]s_%[4]s_%[5]s.%[6]s",
 		owner, repo, tag, goos, goarch, format)
-	req, err := gh.client.NewRequest("HEAD", url, nil)
+	req, err := gh.client.NewRequest(ctx, "HEAD", url, nil)
 	if err != nil {
 		return err
 	}
@@ -110,7 +109,6 @@ func (gh *ghg) get(ctx context.Context) error {
 	httpCli.CheckRedirect = func(req *http.Request, via []*http.Request) error {
 		return http.ErrUseLastResponse
 	}
-	req = req.WithContext(ctx)
 	resp, err := httpCli.Do(req)
 	if err != nil {
 		return err
