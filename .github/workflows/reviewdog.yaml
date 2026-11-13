@@ -21,7 +21,7 @@ jobs:
         with:
           go-version-file: go.mod
       - name: staticcheck
-        uses: reviewdog/action-staticcheck@v1.33.0
+        uses: reviewdog/action-staticcheck@v1.34.0
         with:
           reporter: github-pr-review
           fail_level: error
